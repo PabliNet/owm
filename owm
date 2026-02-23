@@ -216,7 +216,7 @@ Opciones de datos meteorológicos:
 
 Modos especiales:
   --temp-feelslike     Alterna entre temperatura y sensación térmica
-                       cada 5 segundos.
+                       cada 5 segundos, solo si los valores son distintos.
 
                        Esta opción funciona como modo independiente.
                        No puede combinarse con otras opciones meteorológicas.
@@ -229,11 +229,24 @@ Modos especiales:
                        Formato de salida:
                          Español:
                            T24°C   (temperatura)
-                           S24°C   (sensación térmica)
+                           S25°C   (sensación térmica)
 
                          Inglés:
                            T24°C   (temperature)
-                           L24°C   (feels like)
+                           L25°C   (feels like)
+
+  --icon-temp-feelslike
+                       Muestra el ícono del clima y alterna
+                       entre temperatura y sensación térmica
+                       cada 5 segundos, solo si los valores son distintos.
+
+                       Funciona como modo independiente.
+                       No puede combinarse con otras opciones
+                       meteorológicas.
+
+                       Ejemplo:
+                         ☀ T24°C
+                         ☀ S25°C
 
 Opciones de salida:
   --space=SEP          Define el separador entre los valores mostrados.
@@ -319,7 +332,7 @@ Weather data options:
 
 Special modes:
   --temp-feelslike     Alternates between temperature and feels-like
-                       every 5 seconds.
+                       every 5 seconds, only if the values differ.
 
                        This option works as a standalone mode.
                        It cannot be combined with other weather options.
@@ -332,11 +345,23 @@ Special modes:
                        Output format:
                          English:
                            T24°C   (temperature)
-                           L24°C   (feels like)
+                           L25°C   (feels like)
 
                          Spanish:
                            T24°C   (temperatura)
-                           S24°C   (sensación térmica)
+                           S25°C   (sensación térmica)
+
+  --icon-temp-feelslike
+                       Displays the weather icon and alternates
+                       between temperature and feels-like
+                       every 5 seconds, only if the values differ.
+
+                       Standalone mode. Cannot be combined with other
+                       weather data options.
+
+                       Example output:
+                         ☀ T24°C
+                         ☀ L25°C
 
 Output options:
   --space=SEP          Set output separator string.
@@ -393,7 +418,7 @@ def err_msg(cod, lang=LANG):
 
     return messages.get(cod, {}).get(lang, 'en')
 
-version = '0.1'
+version = '0.2'
 DIR = '/tmp/owm'
 API_KEY = (
     get_arg('--key=') if has_arg('--key=') else getenv('OWM_API_KEY', 'err')
@@ -405,9 +430,9 @@ PATTERN_POINT = r'^-?\d{1,3}(\.\d+)?$'
 OPTIONS = 'dhilnptvw'
 PATTERN_OPTION = r'^-['+ OPTIONS + ']+$'
 PATTERN_ARG = (
-    r'^(--(city|geo|key|lat|lon|space|time)=.+'
-    r'|--(help|temp-feelslike|version)'
-    r'|(-[' + OPTIONS + ']+))$'
+    r'^(?:--(city|geo|key|lat|lon|space|time)=.+'
+    r'|--(?:help|(?:icon-)?temp-feelslike|version)'
+    r'|(?:-[' + OPTIONS + ']+))$'
 )
 
 if __name__ == '__main__':
@@ -480,12 +505,14 @@ if __name__ == '__main__':
 
         if (
             any(fullmatch(PATTERN_OPTION, arg) for arg in argv[1:]) or
-            '--temp-feelslike' in argv[1:]
+            '--temp-feelslike' in argv[1:] or
+            '--icon-temp-feelslike' in argv[1:]
         ):
             for e in argv[1:]:
                 if (
                     fullmatch(PATTERN_OPTION, e) or
-                    '--temp-feelslike' in argv[1:]
+                    '--temp-feelslike' in argv[1:] or
+                    '--icon-temp-feelslike' in argv[1:]
                 ):
                     option = e
                     if is_cache_valid(file):
@@ -498,16 +525,22 @@ if __name__ == '__main__':
                     break
             options = []
             if (
-                '--temp-feelslike' in argv[1:] and
+                ('--temp-feelslike' in argv[1:]
+                 or '--icon-temp-feelslike' in argv[1:]) and
                 not any(fullmatch(PATTERN_OPTION, arg) for arg in argv[1:])
             ):
                 time_now = int(time()) % 10
                 temp, feels_like = dict_info('t', data), dict_info('l', data)
                 AT = 'S' if LANG == 'es' else 'L'
+                ICON = (
+                    f'{dict_info("i", data)}'
+                    if '--icon-temp-feelslike' in argv[1:]
+                    else ''
+                )
                 if temp != feels_like and time_now >= 5:
-                    print(f'{AT}{feels_like}')
+                    print(f'{ICON}{AT}{feels_like}')
                 else:
-                    print(f'T{temp}')
+                    print(f'{ICON}T{temp}')
                 exit(0)
             for e in option[1:]:
                 if len(option) != len(set(option)):
