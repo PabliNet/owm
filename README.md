@@ -6,6 +6,26 @@ A command-line tool to retrieve current weather information from OpenWeatherMap,
 
 ## Installation
 
+### Install from GitHub
+
+**Clone the repository**
+
+```bash
+git clone https://github.com/pablinet/owm.git
+```
+
+**Make the script executable**
+
+```bash
+chmod +x owm/owm
+```
+
+**Copy it to /usr/local/bin as root or with `sudo`**
+
+```bash
+cp owm/owm /urs/local/bin
+```
+
 ### Install from APT (Debian/Ubuntu)
 
 Run the following commands as root or with `sudo`:
@@ -52,6 +72,7 @@ owm --city="Buenos Aires" --key=YOUR_API_KEY
 ```
 
 **Via environment variable:**
+
 ```bash
 export OWM_API_KEY="your_key"
 ```
@@ -106,14 +127,24 @@ Short options must be combined into a single argument (e.g. `-tld`, not `-t -l -
 
 ### `--temp-feelslike`
 
-Alternates between temperature and feels-like every 5 seconds. This is a standalone mode and **cannot** be combined with other weather options (`-n -i -d -t -l -p -v -w`), `--help`, or `--version`.
+Alternates between temperature and feels-like every 5 seconds, only if the values differ.. This is a standalone mode and **cannot** be combined with other weather options (`-n -i -d -t -l -p -v -w`), `--help`, or `--version`.
+### `--icon-temp-feelslike`
 
 **Output format:**
 
 | Language | Temperature | Feels Like |
 |----------|-------------|------------|
-| English | `T24°C` | `L24°C` |
-| Spanish | `T24°C` | `S24°C` |
+| Spanish | `T24°C` | `S29°C` |
+| English | `T24°C` | `L29°C` |
+
+Displays the weather icon and alternates between temperature and feels-like every 5 seconds, only if the values differ. This is a standalone mode and **cannot** be combined with other weather options (`-n -i -d -t -l -p -v -w`), `--help`, or `--version`.
+
+**Output format:**
+
+| Language | Temperature | Feels Like |
+|----------|-------------|------------|
+| Spanish | `☀T24°C` | `☀S29°C` |
+| English | `☀T24°C` | `☀L29°C` |
 
 ---
 
@@ -121,11 +152,11 @@ Alternates between temperature and feels-like every 5 seconds. This is a standal
 
 | Option | Description |
 |--------|-------------|
-| `--units=UNIT` | Unit system: `metric` (°C, m/s), `imperial` (°F, mph), `standard` (K, m/s) |
-| `--lang=LANG` | Response language (e.g. `en`, `es`, `fr`) |
-| `--time=SECONDS` | Refresh interval in seconds. Minimum: 300 (5 minutes). Useful for panels or status bars |
-| `--space=SEP` | Output separator string. Default: single space. Example: `--space=" \| "` |
-| `--window=conky` | Indicates execution inside Conky. Can also be set via `export WINDOW_TERMINAL=$(ps -o comm= -p $PPID)` |
+| `--units=UNIT` | Unit system: `metric` (°C, m/s), `imperial` (°F, mph), `standard` (K, m/s). <br />Via environment variable: `export OWM_UNITS=60000` (10 minutes). |
+| `--lang=LANG` | Response language (e.g. `es`, `en`) |
+| `--time=SECONDS` | Refresh interval in seconds. Minimum: 300 (5 minutes). Useful for panels or status bars<br />Via environment variable: `export OWM_SECONDS=60000` (10 minutes). |
+| `--space=SEP` | Output separator string. Default: single space. Example: `--space=" | "` |
+| `--window=conky` | Indicates execution inside Conky.<br />Can also be set via `export WINDOW_TERMINAL=$(ps -o comm= -p $PPID)` |
 | `--help` | Display help and exit |
 | `--version` | Output version information and exit |
 
@@ -133,16 +164,22 @@ Alternates between temperature and feels-like every 5 seconds. This is a standal
 
 ## Examples
 
+**Basic usage with city name**
 ```bash
-# Basic usage with city name
 owm --city="Puerto Iguazú" --key=0123456789
+```
 
-# Coordinates with temperature and feels-like
+**Coordinates with temperature and feels-like**
+```bash
 owm --geo=-25.6346782,-54.58287530604622 -tl --key=0123456789
+```
 
-# Latitude/longitude with metric units
+**Latitude/longitude with metric units**
+```bash
 owm --lat=-25.6346782 --lon=-54.58287530604622 -t --units=metric
+```
 
-# Coordinates with no separator between values
+**Coordinates with no separator between values**
+```bash
 owm --geo=-25.6346782,-54.58287530604622 -tl --no-space --key=0123456789
 ```

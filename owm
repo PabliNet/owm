@@ -11,12 +11,20 @@ from urllib.parse import urlencode
 from json import dump, load
 from re import fullmatch, match
 
-has_arg = lambda x: len([_ for _ in argv[1:] if _.startswith(x)]) == 1
+args = argv[1:]
+
+has_arg = lambda x: len([_ for _ in args if _.startswith(x)]) == 1
 
 LANG = (
     (getlocale()[0] or 'en').split('_')[0] if not has_arg('--lang=') else
     get_arg('--lang=')
 )
+
+def get_arg(prefix):
+    for item in args:
+        if item.startswith(prefix):
+            return item.split('=', 1)[1]
+    return None
 
 WINDOW = (
     get_arg('--window=') if has_arg('--window=') else
@@ -24,7 +32,7 @@ WINDOW = (
 )
 
 SECONDS_ENV = (
-    get_arg('--time=') if has_arg('--time=') else
+    int(get_arg('--time=')) if has_arg('--time=') else
     int(getenv('OWM_SECONDS', 300))
 )
 
@@ -160,12 +168,6 @@ def dict_info(opt, data):
     }
     return values.get(opt, '--')
 
-def get_arg(prefix):
-    for item in argv[1:]:
-        if item.startswith(prefix):
-            return item.split('=', 1)[1]
-    return None
-
 def help (lang):
     show = {
         'es': """
@@ -197,6 +199,14 @@ Opciones de ubicación (una obligatoria):
 
   Las coordenadas deben expresarse en formato decimal.
   Utilice valores negativos para los hemisferios Sur y Oeste.
+
+  Variables de entorno:
+  OWM_GEO              Coordenadas predeterminadas en formato LAT,LON.
+                       Se utiliza cuando no se especifica una opción
+                       de ubicación en la línea de comandos.
+
+                       Ejemplo:
+                         export OWM_GEO="-25.6346782,-54.58287530604622"
 
 Opciones de datos meteorológicos:
   -n                   Nombre de la ciudad
@@ -285,7 +295,7 @@ Ejemplos:
   owm --geo=-25.6346782,-54.58287530604622 -tl --key=0123456789
   owm --lat=-25.6346782 --lon=-54.58287530604622 -t --units=metric
   owm --geo=-25.6346782,-54.58287530604622 -tl --no-space --key=0123456789""",
-
+#############################################################################
         'en': """Usage:
   owm --city="CITY"
   owm --geo=LAT,LON
@@ -313,6 +323,13 @@ Location options (one required):
 
   Coordinates must be expressed in decimal format.
   Use negative values for South and West hemispheres.
+
+  Environment variables:
+  OWM_GEO              Default geographic coordinates in LAT,LON format.
+                       Used when no location option is provided.
+
+                       Example:
+                         export OWM_GEO="-25.6346782,-54.58287530604622"
 
 Weather data options:
   -n                   City name
@@ -418,7 +435,7 @@ def err_msg(cod, lang=LANG):
 
     return messages.get(cod, {}).get(lang, 'en')
 
-version = '0.2'
+version = '0.3'
 DIR = '/tmp/owm'
 API_KEY = (
     get_arg('--key=') if has_arg('--key=') else getenv('OWM_API_KEY', 'err')
@@ -436,13 +453,19 @@ PATTERN_ARG = (
 )
 
 if __name__ == '__main__':
+    if (
+        not (has_arg('--geo=') or (has_arg('--lat=') and has_arg('--lon=')))
+    ) and (any(fullmatch(PATTERN_OPTION, arg)
+              for arg in args) and getenv('OWM_GEO') or
+           '--icon-temp-feelslike' in args or '--temp-feelslike' in args):
+        args.append(f'--geo={getenv("OWM_GEO")}')
     if ARGVs == 0:
         if WINDOW.lower() == 'conky':
             print ('--')
             exit(0)
         else:
             raise IndexError(err_msg(1))
-    elif not all(fullmatch(PATTERN_ARG, arg) for arg in argv[1:]):
+    elif not all(fullmatch(PATTERN_ARG, arg) for arg in args):
         if WINDOW.lower() == 'conky':
             print ('--')
             exit(0)
@@ -504,15 +527,15 @@ if __name__ == '__main__':
         city_url = point_url(lat, lon)
 
         if (
-            any(fullmatch(PATTERN_OPTION, arg) for arg in argv[1:]) or
-            '--temp-feelslike' in argv[1:] or
-            '--icon-temp-feelslike' in argv[1:]
+            any(fullmatch(PATTERN_OPTION, arg) for arg in args) or
+            '--temp-feelslike' in args or
+            '--icon-temp-feelslike' in args
         ):
-            for e in argv[1:]:
+            for e in args:
                 if (
                     fullmatch(PATTERN_OPTION, e) or
-                    '--temp-feelslike' in argv[1:] or
-                    '--icon-temp-feelslike' in argv[1:]
+                    '--temp-feelslike' in args or
+                    '--icon-temp-feelslike' in args
                 ):
                     option = e
                     if is_cache_valid(file):
@@ -520,21 +543,21 @@ if __name__ == '__main__':
                             data = load(f)
                     else:
                         data = info_in_dict(city_url)
-                    with open(file, 'w', encoding='utf-8') as f:
-                        dump(data, f, indent=4, ensure_ascii=False)
+                        with open(file, 'w', encoding='utf-8') as f:
+                            dump(data, f, indent=4, ensure_ascii=False)
                     break
             options = []
             if (
-                ('--temp-feelslike' in argv[1:]
-                 or '--icon-temp-feelslike' in argv[1:]) and
-                not any(fullmatch(PATTERN_OPTION, arg) for arg in argv[1:])
+                ('--temp-feelslike' in args
+                 or '--icon-temp-feelslike' in args) and
+                not any(fullmatch(PATTERN_OPTION, arg) for arg in args)
             ):
                 time_now = int(time()) % 10
                 temp, feels_like = dict_info('t', data), dict_info('l', data)
                 AT = 'S' if LANG == 'es' else 'L'
                 ICON = (
                     f'{dict_info("i", data)}'
-                    if '--icon-temp-feelslike' in argv[1:]
+                    if '--icon-temp-feelslike' in args
                     else ''
                 )
                 if temp != feels_like and time_now >= 5:
