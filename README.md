@@ -150,17 +150,29 @@ Displays the weather icon and alternates between temperature and feels-like ever
 
 ## General Options
 
-| Option | Description |
-|--------|-------------|
-| `--units=UNIT` | Unit system: `metric` (°C, m/s), `imperial` (°F, mph), `standard` (K, m/s). <br />Via environment variable: `export OWM_UNITS=60000` (10 minutes). |
-| `--lang=LANG` | Response language (e.g. `es`, `en`) |
-| `--time=SECONDS` | Refresh interval in seconds. Minimum: 300 (5 minutes). Useful for panels or status bars<br />Via environment variable: `export OWM_SECONDS=60000` (10 minutes). |
-| `--space=SEP` | Output separator string. Default: single space. Example: `--space=" \| "` |
-| `--window=conky` | Indicates execution inside Conky.<br />Can also be set via `export WINDOW_TERMINAL=$(ps -o comm= -p $PPID)` |
-| `--help` | Display help and exit |
-| `--version` | Output version information and exit |
+ **`--units=UNIT`**
+Unit system: `metric` (°C, m/s), `imperial` (°F, mph), `standard` (K, m/s). <br />Via environment variable: `export OWM_UNITS=60000` (10 minutes). 
 
----
+**`--lang=LANG`**
+Response language (e.g. `es`, `en`)
+
+**`--time=SECONDS`**
+Refresh interval in seconds. Minimum: 300 (5 minutes). Useful for panels or status bars.
+Via environment variable: `export OWM_SECONDS=60000` (10 minutes).
+
+**`--space=SEP` **
+Output separator string. Default: single space.
+Example: `--space=" \| "`.
+
+**`--window=conky`**
+Indicates execution inside Conky.  Can also be set via `export WINDOW_TERMINAL=$(ps -o comm= -p $PPID)`.
+
+**`--help`** 
+Display help and exit.
+
+**`--version` **
+Output version information and exit.
+
 
 ## Examples
 
