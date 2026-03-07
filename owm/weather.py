@@ -15,7 +15,7 @@ def get_weather(
     units: str = "metric",
     cache_seconds: int = 600,
 ) -> Weather:
-    cache_path = build_cache_path(lat, lon, "metric", lang)
+    cache_path = build_cache_path(lat, lon, lang)
 
     if is_cache_valid(cache_path, cache_seconds):
         cached = read_cache(cache_path)
