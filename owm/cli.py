@@ -137,7 +137,7 @@ def apply_env_defaults(args) -> None:
             except ValueError:
                 pass
         if args.cache_seconds is None:
-            args.cache_seconds = 600  # default 10 min
+            args.cache_seconds = 300  # default 5 min
 
 
 def main() -> None:

@@ -85,7 +85,7 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | `--lon LON` | Longitude (use with `--lat`, or `OWM_GEO` env var) |
 | `--units UNITS` | Unit system: `metric` (default) or `imperial` (or `OWM_UNITS` env var) |
 | `--lang LANG` | Language for weather description (or `LANG` env var, default: `en`) |
-| `--time SECONDS` | Cache validity in seconds (or `OWM_SECONDS` env var, default: 600) |
+| `--time SECONDS` | Cache validity in seconds (or `OWM_SECONDS` env var, default: 300) |
 | `--space SPACE` | Separator between output fields (default: space) |
 | `-h, --help` | Show help and exit |
 | `-v, --version` | Show version and exit |
@@ -240,7 +240,7 @@ python3 -m owm --city=Paris --key=TU_KEY
 | `--lon LON` | Longitud (usar junto con `--lat`, o variable `OWM_GEO`) |
 | `--units UNITS` | Sistema de unidades: `metric` (por defecto) o `imperial` (o variable `OWM_UNITS`) |
 | `--lang LANG` | Idioma de la descripción del clima (o variable `LANG`, por defecto: `en`) |
-| `--time SECONDS` | Segundos de validez del caché (o variable `OWM_SECONDS`, por defecto: 600) |
+| `--time SECONDS` | Segundos de validez del caché (o variable `OWM_SECONDS`, por defecto: 300) |
 | `--space SPACE` | Separador entre campos de salida (por defecto: espacio) |
 | `-h, --help` | Mostrar ayuda y salir |
 | `-v, --version` | Mostrar versión y salir |
