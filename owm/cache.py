@@ -22,8 +22,8 @@ def build_filename(lat, lon, units, lang) -> str:
     return f'{lat}_{lon}_{units}_{lang}.json'
 
 
-def build_cache_path(lat, lon, units, lang) -> Path:
-    return get_cache_dir() / build_filename(lat, lon, units, lang)
+def build_cache_path(lat, lon, lang) -> Path:
+    return get_cache_dir() / build_filename(lat, lon, lang)
 
 
 def is_cache_valid(path: Path, max_age: int) -> bool:
