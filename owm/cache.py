@@ -16,10 +16,10 @@ def get_cache_dir() -> Path:
     return _cache_dir
 
 
-def build_filename(lat, lon, units, lang) -> str:
+def build_filename(lat, lon, lang) -> str:
     lat = f'{float(lat):.4f}'
     lon = f'{float(lon):.4f}'
-    return f'{lat}_{lon}_{units}_{lang}.json'
+    return f'{lat}_{lon}_{lang}.json'
 
 
 def build_cache_path(lat, lon, lang) -> Path:
