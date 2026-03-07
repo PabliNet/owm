@@ -66,7 +66,7 @@ def build_parser(lang: str) -> ArgumentParser:
 
     # Flags de salida (modo clima)
     output = parser.add_argument_group(m('group_output'))
-    output.add_argument('-d', '--description', action='store_true',
+    output.add_argument('--description', action='store_true',
                         help=m('help_description'))
 
     output.add_argument('--feels-like', action='store_true',
@@ -93,7 +93,7 @@ def build_parser(lang: str) -> ArgumentParser:
     output.add_argument('--sunset', action='store_true',
                         help=m('help_sunset'))
 
-    output.add_argument('-t', '--temp', action='store_true',
+    output.add_argument('--temp', action='store_true',
                         help=m('help_temp'))
 
     output.add_argument('--temp-feels-like', action='store_true',
@@ -236,7 +236,6 @@ def main() -> None:
 
         output_map = {
             '--description': lambda: weather.description.capitalize(),
-            '-d': lambda: weather.description.capitalize(),
             '--feels-like': lambda: temperature(weather.feels_like, UNITS),
             '--humidity': lambda: f'{weather.humidity}%',
             '--icon': lambda: icons(weather.icon),
@@ -247,7 +246,6 @@ def main() -> None:
             '--sunrise': lambda: weather.sunrise_str,
             '--sunset': lambda: weather.sunset_str,
             '--temp': lambda: temperature(weather.temperature, UNITS),
-            '-t': lambda: temperature(weather.temperature, UNITS),
             '--temp-feels-like': temp_feels_like_output,
             '--visibility': lambda: str(
                 visibility(weather.visibility, UNITS)

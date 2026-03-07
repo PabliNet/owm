@@ -94,10 +94,10 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 
 | Flag | Description |
 |------|-------------|
-| `-t, --temp` | Temperature |
+| `--temp` | Temperature |
 | `--feels-like` | Feels like temperature |
 | `--temp-feels-like` | Temperature or feels-like, alternating every 5 seconds |
-| `-d, --description` | Weather description |
+| `--description` | Weather description |
 | `--humidity` | Relative humidity |
 | `--pressure` | Atmospheric pressure |
 | `--wind` | Wind speed and direction |
@@ -125,7 +125,7 @@ export OWM_API_KEY=your_api_key
 export OWM_GEO=-34.61,-58.38
 export OWM_UNITS=metric
 
-owm -t --description
+owm --temp --description
 owm --temp-feels-like --humidity --space=" | "
 python3 -m owm --wind --pressure --units=imperial
 ```
@@ -134,18 +134,18 @@ python3 -m owm --wind --pressure --units=imperial
 
 ```bash
 # Temperature and description, pipe-separated
-owm --geo=-34.61,-58.38 --key=YOUR_KEY -t -d --space=" | "
+owm --geo=-34.61,-58.38 --key=YOUR_KEY --description --temp --space=" | "
 # 18°C | scattered clouds
 
 # Metric vs imperial
-owm --geo=40.71,-74.01 --key=YOUR_KEY -t --units=metric
+owm --geo=40.71,-74.01 --key=YOUR_KEY --temp --units=metric
 # 22°C
-owm --geo=40.71,-74.01 --key=YOUR_KEY -t --units=imperial
+owm --geo=40.71,-74.01 --key=YOUR_KEY --temp --units=imperial
 # 71.6°F
 
 # Full weather report
-owm --lat=48.85 --lon=2.35 --key=YOUR_KEY -t --feels-like --humidity --wind --pressure
-python3 -m owm --lat=48.85 --lon=2.35 --key=YOUR_KEY -t --feels-like --humidity --wind --pressure
+owm --lat=48.85 --lon=2.35 --key=YOUR_KEY --temp --feels-like --humidity --wind --pressure
+python3 -m owm --lat=48.85 --lon=2.35 --key=YOUR_KEY --temp --feels-like --humidity --wind --pressure
 
 # Geocoding
 owm --city=Tokyo --key=YOUR_KEY
@@ -157,7 +157,7 @@ owm --geo=-34.61,-58.38 --key=YOUR_KEY --sunrise --sunset --space=" / "
 
 ### Changes in 0.4.0
 
-The flags `-l`, `-n`, `-p` and `-w` have been removed. The flags `-h` and `-v` have been replaced by `--help` and `--version` respectively starting from version 0.4.0.
+The flags `-d`, `-i`, `-l`, `-n`, `-p`, `-t` and `-w` have been removed. The flags `-h` and `-v` have been replaced by `--help` and `--version` respectively starting from version 0.4.0.
 
 ---
 
@@ -249,10 +249,10 @@ python3 -m owm --city=Paris --key=TU_KEY
 
 | Flag | Descripción |
 |------|-------------|
-| `-t, --temp` | Temperatura |
+| `--temp` | Temperatura |
 | `--feels-like` | Sensación térmica |
 | `--temp-feels-like` | Temperatura o sensación térmica, alternando cada 5 segundos |
-| `-d, --description` | Descripción del clima |
+| `--description` | Descripción del clima |
 | `--humidity` | Humedad relativa |
 | `--pressure` | Presión atmosférica |
 | `--wind` | Velocidad y dirección del viento |
@@ -280,7 +280,7 @@ export OWM_API_KEY=tu_api_key
 export OWM_GEO=-34.61,-58.38
 export OWM_UNITS=metric
 
-owm -t --description
+owm --temp --description
 owm --temp-feels-like --humidity --space=" | "
 python3 -m owm --wind --pressure --units=imperial
 ```
@@ -289,18 +289,18 @@ python3 -m owm --wind --pressure --units=imperial
 
 ```bash
 # Temperatura y descripción separadas por pipe
-owm --geo=-34.61,-58.38 --key=TU_KEY -t -d --space=" | "
+owm --geo=-34.61,-58.38 --key=TU_KEY --description --temp --space=" | "
 # 18°C | nubes dispersas
 
 # Métrico vs imperial
-owm --geo=40.71,-74.01 --key=TU_KEY -t --units=metric
+owm --geo=40.71,-74.01 --key=TU_KEY --temp --units=metric
 # 22°C
-owm --geo=40.71,-74.01 --key=TU_KEY -t --units=imperial
+owm --geo=40.71,-74.01 --key=TU_KEY --temp --units=imperial
 # 71.6°F
 
 # Reporte completo
-owm --lat=48.85 --lon=2.35 --key=TU_KEY -t --feels-like --humidity --wind --pressure
-python3 -m owm --lat=48.85 --lon=2.35 --key=TU_KEY -t --feels-like --humidity --wind --pressure
+owm --lat=48.85 --lon=2.35 --key=TU_KEY --temp --feels-like --humidity --wind --pressure
+python3 -m owm --lat=48.85 --lon=2.35 --key=TU_KEY --temp --feels-like --humidity --wind --pressure
 
 # Geolocalización
 owm --city=Tokio --key=TU_KEY
@@ -312,4 +312,4 @@ owm --geo=-34.61,-58.38 --key=TU_KEY --sunrise --sunset --space=" / "
 
 ### Cambios en la versión 0.4.0
 
-Los flags `-l`, `-n`, `-p` y `-w` fueron eliminados. Los flags `-h` y `-v` fueron reemplazados por `--help` y `--version` respectivamente a partir de la versión 0.4.0.
+Los flags `-d`, `-i` `-l`, `-n`, `-p`, `-t` y `-w` fueron eliminados. Los flags `-h` y `-v` fueron reemplazados por `--help` y `--version` respectivamente a partir de la versión 0.4.0.
