@@ -235,24 +235,26 @@ def main() -> None:
                 return f'T{temperature(weather.temperature, UNITS)}'
 
         output_map = {
+            '--description': lambda: weather.description.capitalize(),
+            '-d': lambda: weather.description.capitalize(),
+            '--feels-like': lambda: temperature(weather.feels_like, UNITS),
+            '--humidity': lambda: f'{weather.humidity}%',
+            '--icon': lambda: icons(weather.icon),
+            '--id': lambda: (str(weather.city_id)
+                             if weather.city_id is not None else 'N/A'),
+            '--name': lambda: weather.city_name,
+            '--pressure': lambda: pressure(weather.pressure, UNITS),
+            '--sunrise': lambda: weather.sunrise_str,
+            '--sunset': lambda: weather.sunset_str,
             '--temp': lambda: temperature(weather.temperature, UNITS),
             '-t': lambda: temperature(weather.temperature, UNITS),
-            '--feels-like': lambda: temperature(weather.feels_like, UNITS),
             '--temp-feels-like': temp_feels_like_output,
-            '--description': lambda: weather.description.capitalize(),
-            '-d': lambda: weather.description.capitalize,
-            '--humidity': lambda: f'{weather.humidity}%',
-            '--pressure': lambda: pressure(weather.pressure, UNITS),
-            '--wind': lambda: f'{wind(weather.wind_speed, UNITS)} '
-                                     f'{weather.wind_direction}',
-            '--icon': lambda: icons(weather.icon),
-            '--name': lambda: weather.city_name,
             '--visibility': lambda: str(
                 visibility(weather.visibility, UNITS)
                 if weather.visibility is not None
                 else 'N/A'),
-            '--sunrise': lambda: weather.sunrise_str,
-            '--sunset': lambda: weather.sunset_str,
+            '--wind': lambda: f'{wind(weather.wind_speed, UNITS)} '
+                                     f'{weather.wind_direction}',
         }
 
         # Aliases that refer to the same output, to avoid duplicates
