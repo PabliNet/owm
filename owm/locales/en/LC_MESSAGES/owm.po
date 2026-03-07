@@ -1,0 +1,145 @@
+# English translations for owm
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+msgid "dl-city"
+msgstr "Downloading cities…"
+
+msgid "api_key_required"
+msgstr "API key required: use --key or set OWM_API_KEY"
+
+msgid "lat_range"
+msgstr "Latitude must be between -90 and 90"
+
+msgid "lon_range"
+msgstr "Longitude must be between -180 and 180"
+
+msgid "invalid_lat_format"
+msgstr "Invalid latitude format"
+
+msgid "invalid_lon_format"
+msgstr "Invalid longitude format"
+
+msgid "invalid_format"
+msgstr "Invalid format"
+
+msgid "geo_format"
+msgstr "--geo must be in format LAT,LON"
+
+msgid "lat_lon_together"
+msgstr "--lat and --lon must be used together"
+
+msgid "location_required"
+msgstr "Location required: use --geo, --lat/--lon or --city"
+
+msgid "city_conflict"
+msgstr "--city cannot be used with --geo or --lat/--lon"
+
+msgid "geo_conflict"
+msgstr "--geo cannot be used with --lat/--lon"
+
+msgid "output_required"
+msgstr "At least one output option is required"
+
+msgid "city_no_output"
+msgstr "Output flags cannot be used with --city"
+
+msgid "city_not_found"
+msgstr "City not found"
+
+msgid "weather_api_error"
+msgstr "Error retrieving the weather"
+
+msgid "temp_prefix"
+msgstr "T"
+
+msgid "lat"
+msgstr "Latitude"
+
+msgid "lon"
+msgstr "Longitude"
+
+msgid "group_auth"
+msgstr "authentication"
+
+msgid "group_config"
+msgstr "setting"
+
+msgid "group_local"
+msgstr "geolocation"
+
+msgid "group_output"
+msgstr "output"
+
+msgid "help_version"
+msgstr "Output version information and exit"
+
+msgid "help_key"
+msgstr "OpenWeatherMap API key (or OWM_API_KEY env var)"
+
+msgid "help_city"
+msgstr "Search city by name (geocoding mode)"
+
+msgid "help_geo"
+msgstr "Coordinates as LAT,LON (or OWM_GEO env var)"
+
+msgid "help_lat"
+msgstr "Latitude (use with --lon, or OWM_GEO env var)"
+
+msgid "help_lon"
+msgstr "Longitude (use with --lat, or OWM_GEO env var)"
+
+msgid "help_units"
+msgstr "Unit system (or OWM_UNITS env var), only metric (default) or imperial"
+
+msgid "help_lang"
+msgstr "Language for weather description"
+
+msgid "help_time"
+msgstr "Cache validity in seconds (or OWM_SECONDS env var)"
+
+msgid "help_temp"
+msgstr "Temperature"
+
+msgid "help_feels_like"
+msgstr "Feels like temperature"
+
+msgid "help_temp_feels_like"
+msgstr "Temperature or feels-like alternating every 5 seconds"
+
+msgid "help_description"
+msgstr "Weather description"
+
+msgid "help_humidity"
+msgstr "Relative humidity"
+
+msgid "help_pressure"
+msgstr "Atmospheric pressure"
+
+msgid "help_wind"
+msgstr "Wind speed and direction"
+
+msgid "help_icon"
+msgstr "Weather icon code"
+
+msgid "help_visibility"
+msgstr "Visibility"
+
+msgid "help_sunrise"
+msgstr "Sunrise time"
+
+msgid "help_sunset"
+msgstr "Sunset time"
+
+msgid "help_name"
+msgstr "City name (weather mode only)"
+
+msgid "help_id"
+msgstr "OWM city ID (weather mode only)"
+
+msgid "help_space"
+msgstr "Separator between output fields"
