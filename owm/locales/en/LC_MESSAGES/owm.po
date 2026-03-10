@@ -93,6 +93,9 @@ msgstr "Latitude (use with --lon, or OWM_GEO env var)"
 msgid "help_lon"
 msgstr "Longitude (use with --lat, or OWM_GEO env var)"
 
+msgid "help_terminal"
+msgstr "Force behavior as if running in the specified terminal"
+
 msgid "help_units"
 msgstr "Unit system (or OWM_UNITS env var), only metric (default) or imperial"
 
@@ -108,11 +111,14 @@ msgstr "Temperature"
 msgid "help_feels_like"
 msgstr "Feels like temperature"
 
-msgid "help_temp_feels_like"
+msgid "help_toggle"
 msgstr "Temperature or feels-like alternating every 5 seconds"
 
+msgid "help_description_capitalize"
+msgstr "Weather description (capitalized)"
+
 msgid "help_description"
-msgstr "Weather description"
+msgstr "Weather description (lowercase)"
 
 msgid "help_humidity"
 msgstr "Relative humidity"
@@ -143,3 +149,34 @@ msgstr "OWM city ID (weather mode only)"
 
 msgid "help_space"
 msgstr "Separator between output fields"
+
+msgid "label_name"
+msgstr "Location"
+
+msgid "label_description"
+msgstr "Description"
+
+msgid "label_temp"
+msgstr "Temperature"
+
+msgid "label_humidity"
+msgstr "Humidity"
+
+msgid "label_pressure"
+msgstr "Pressure"
+
+msgid "label_visibility"
+msgstr "Visibility"
+
+msgid "label_wind"
+msgstr "Wind"
+
+msgid "label_sunrise"
+msgstr "Sunrise"
+
+msgid "label_sunset"
+msgstr "Sunset"
+
+msgid "feels_like_short"
+msgstr "FL"
+

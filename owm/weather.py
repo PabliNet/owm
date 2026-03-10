@@ -2,7 +2,8 @@ from requests import get, RequestException
 
 from owm.models import Weather
 from owm.exceptions import OWMError
-from owm.cache import build_cache_path, is_cache_valid, read_cache, write_cache
+from owm.cache import (build_cache_path, is_cache_valid, read_cache,
+                       write_cache)
 
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
@@ -14,6 +15,7 @@ def get_weather(
     lang: str = "es",
     units: str = "metric",
     cache_seconds: int = 600,
+    terminal: str | None = None,
 ) -> Weather:
     cache_path = build_cache_path(lat, lon, lang)
 
@@ -37,6 +39,16 @@ def get_weather(
         response = get(BASE_URL, params=params, timeout=10)
         response.raise_for_status()
     except RequestException as exc:
+        # Sin conexión: intentar usar el caché aunque haya expirado
+        cached = read_cache(cache_path)
+        if cached is not None:
+            try:
+                return Weather.from_api(cached)
+            except ValueError:
+                pass
+        if terminal and terminal.lower() == 'conky':
+            print('--')
+            raise SystemExit(0)
         raise OWMError(f"Error connecting to weather service: {exc}") from exc
 
     try:

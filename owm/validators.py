@@ -50,7 +50,7 @@ class Validator:
             args.icon,
             args.pressure,
             args.temp,
-            args.temp_feels_like,
+            args.toggle,
             args.visibility,
             args.wind,
             args.sunrise,
@@ -63,9 +63,6 @@ class Validator:
             if any(output_flags):
                 raise ValueError(msg(self.lang, 'city_no_output'))
             return
-
-        if not any(output_flags):
-            raise ValueError(msg(self.lang, 'output_required'))
 
     # =========================
     # Normalization

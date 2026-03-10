@@ -1,7 +1,6 @@
 from time import time
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser, ArgumentTypeError, HelpFormatter
 from sys import argv, exit
-
 from owm import __version__
 from owm.i18n import msg
 from owm.weather import get_weather
@@ -10,7 +9,7 @@ from owm.geocode import city_name_to_list
 from owm.exceptions import OWMError
 from owm.env import get_env
 from owm.validators import Validator
-from owm.conversions import icons, pressure,temperature, visibility, wind
+from owm.conversions import icons, pressure, temperature, visibility, wind
 
 
 def parse_geo(value: str) -> str:
@@ -29,16 +28,24 @@ def parse_geo(value: str) -> str:
         )
     return value
 
+
 def detect_lang() -> str:
     for arg in argv:
         if arg.startswith('--lang='):
             return arg.split('=', 1)[1]
     return (get_env('LANG') or 'en')[:2]
 
+class AlignedHelpFormatter(HelpFormatter):
+    def _format_action_invocation(self, action):
+        if (action.option_strings and
+                len(action.option_strings) == 1 and
+                action.option_strings[0].startswith('--')):
+            return '    ' + action.option_strings[0]
+        return super()._format_action_invocation(action)
+
 def build_parser(lang: str) -> ArgumentParser:
     m = lambda key: msg(lang, key)
-
-    parser = ArgumentParser(prog='owm')
+    parser = ArgumentParser(prog='owm', formatter_class=AlignedHelpFormatter)
     parser.add_argument('-v', '--version', default=None, action='version',
                         version=f'%(prog)s {__version__}',
                         help=m('help_version'))
@@ -51,59 +58,49 @@ def build_parser(lang: str) -> ArgumentParser:
     local = parser.add_argument_group(m('group_local'))
     local.add_argument('--city', default=None, help=m('help_city'))
     local.add_argument('--geo', type=parse_geo, default=None,
-                        help=m('help_geo'))
+                       help=m('help_geo'))
     local.add_argument('--lat', type=str, default=None, help=m('help_lat'))
     local.add_argument('--lon', type=str, default=None, help=m('help_lon'))
 
     # Configuración
     config = parser.add_argument_group(m('group_config'))
-    config.add_argument('--lang', default='es', help=m('help_lang'))
+    config.add_argument('--lang', default=None, help=m('help_lang'))
+    config.add_argument('--terminal', default=None, help=m('help_terminal'))
     config.add_argument('--time', type=int, default=None,
                         dest='cache_seconds', metavar='SECONDS',
                         help=m('help_time'))
     config.add_argument('--units', choices=['metric', 'imperial'],
                         default=None, metavar='UNITS', help=m('help_units'))
 
-    # Flags de salida (modo clima)
+    # Flags de salida (modo clima) — orden alfabético
     output = parser.add_argument_group(m('group_output'))
-    output.add_argument('--description', action='store_true',
-                        help=m('help_description'))
-
-    output.add_argument('--feels-like', action='store_true',
-                        dest='feels_like', help=m('help_feels_like'))
-
-    output.add_argument('--humidity', action='store_true',
-                        help=m('help_humidity'))
-
-    output.add_argument('--icon', action='store_true', help=m('help_icon'))
-
-    output.add_argument('--id', action='store_true', help=m('help_id'))
-
-    output.add_argument('--name', action='store_true',
-                        help=m('help_name'))
-
-    output.add_argument('--pressure', action='store_true',
-                        help=m('help_pressure'))
-
-    output.add_argument('--space', default=' ', help=m('help_space'))
-
-    output.add_argument('--sunrise', action='store_true',
-                        help=m('help_sunrise'))
-
-    output.add_argument('--sunset', action='store_true',
-                        help=m('help_sunset'))
-
-    output.add_argument('--temp', action='store_true',
-                        help=m('help_temp'))
-
-    output.add_argument('--temp-feels-like', action='store_true',
-                        dest='temp_feels_like',
-                        help=m('help_temp_feels_like'))
-
-    output.add_argument('--visibility', action='store_true',
+    output.add_argument('-b', '--visibility', action='store_true',
                         help=m('help_visibility'))
-
-    output.add_argument('--wind', action='store_true',
+    output.add_argument('-d', '--description', action='store_true',
+                        help=m('help_description'))
+    output.add_argument('-D', '--desc-cap', action='store_true',
+                        help=m('help_description_capitalize'))
+    output.add_argument('-i', '--icon', action='store_true',
+                        help=m('help_icon'))
+    output.add_argument('--id', action='store_true', help=m('help_id'))
+    output.add_argument('-l', '--feels-like', action='store_true',
+                        dest='feels_like', help=m('help_feels_like'))
+    output.add_argument('-n', '--name', action='store_true',
+                        help=m('help_name'))
+    output.add_argument('-p', '--pressure', action='store_true',
+                        help=m('help_pressure'))
+    output.add_argument('--space', default=' ', help=m('help_space'))
+    output.add_argument('-r', '--sunrise', action='store_true',
+                        help=m('help_sunrise'))
+    output.add_argument('-s', '--sunset', action='store_true',
+                        help=m('help_sunset'))
+    output.add_argument('-t', '--temp', action='store_true',
+                        help=m('help_temp'))
+    output.add_argument('-T', '--toggle', action='store_true',
+                        dest='toggle', help=m('help_toggle'))
+    output.add_argument('-u', '--humidity', action='store_true',
+                        help=m('help_humidity'))
+    output.add_argument('-w', '--wind', action='store_true',
                         help=m('help_wind'))
 
     return parser
@@ -139,10 +136,39 @@ def apply_env_defaults(args) -> None:
         if args.cache_seconds is None:
             args.cache_seconds = 300  # default 5 min
 
+    if args.terminal is None:
+        args.terminal = get_env('WINDOW_TERMINAL')
+
+    if args.lang is None:
+        args.lang = detect_lang()
+
+def default_report(weather, lang: str, units: str) -> None:
+    '''Reporte completo cuando no se pasan flags de salida.'''
+    m = lambda key: msg(lang, key)
+    fl_short = msg(lang, 'feels_like_short')
+    vis = (
+        str(visibility(weather.visibility, units))
+        if weather.visibility is not None else 'N/A'
+    )
+    temp = temperature(weather.temperature, units)
+    feels = temperature(weather.feels_like, units)
+    desc = f"{icons(weather.icon)}: {weather.description.capitalize()}"
+    print(f"{m('label_name')}: {weather.city_name}")
+    print(f"{m('label_description')}: {desc}")
+    print(f"{m('label_temp')}: {temp} ({fl_short} {feels})")
+    print(f"{m('label_humidity')}: {weather.humidity}%")
+    print(f"{m('label_pressure')}: {pressure(weather.pressure, units)}")
+    print(f"{m('label_visibility')}: {vis}")
+    print(
+        f"{m('label_wind')}: "
+        f"{wind(weather.wind_speed, units)} {weather.wind_direction}"
+    )
+    print(f"{m('label_sunrise')}: {weather.sunrise_str}")
+    print(f"{m('label_sunset')}: {weather.sunset_str}")
 
 def main() -> None:
     parser = build_parser(detect_lang())
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     apply_env_defaults(args)
 
@@ -170,42 +196,36 @@ def main() -> None:
                     lang=lang,
                     units=args.units,
                     cache_seconds=args.cache_seconds,
+                    terminal=args.terminal,
                 )
                 lat, lon = city.lat, city.lon
                 city_id = weather.city_id
 
-                # Línea 1: nombre, estado (si aplica), país
                 header_parts = [city.name]
                 if city.state:
                     header_parts.append(city.state)
                 header_parts.append(city.country)
                 lines = [', '.join(header_parts)]
 
-                # Línea 2-3: comandos owm equivalentes
                 lines.append(f'owm --geo={lat},{lon} -t')
                 lines.append(f'owm --lat={lat} --lon={lon} -t')
 
-                # Línea 4: URL API OWM
                 owm_url = (
                     f'https://api.openweathermap.org/data/2.5/weather'
                     f'?lat={lat}&lon={lon}&units=metric&lang={lang}'
                     f'&appid={api_key}'
                 )
                 lines.append(f'\x1b[4mOpen Weather Map\x1b[24m: {owm_url}')
+                lines.append(
+                    f'\x1b[4mGoogle Map\x1b[24m: '
+                    f'https://maps.google.com/?q={lat},{lon}'
+                )
 
-                # Línea 5: Google Maps
-                lines.append(f'\x1b[4mGoogle Map\x1b[24m: '
-                             'https://maps.google.com/?q={lat},{lon}')
-
-                # Línea 6: Widget OWM (solo si hay id)
                 if city_id:
                     lines.append(
                         f'\x1b[4mWidget Widget Plus\x1b[24m: '
                         f'https://old.openweathermap.org/city/{city_id}'
                     )
-
-                # Línea 7: ID
-                if city_id:
                     lines.append(f'\x1b[4mID\x1b[24m: {city_id}')
 
                 blocks.append('\n'.join(lines))
@@ -223,53 +243,102 @@ def main() -> None:
             lang=lang,
             units=args.units,
             cache_seconds=args.cache_seconds,
+            terminal=args.terminal,
         )
 
-        def temp_feels_like_output():
+        def toggle_output():
             second_unit = int(time()) % 10
-            if second_unit >= 5 and weather.temperature != weather.feels_like:
-                prefix = msg(lang, 'feels_like_prefix')
+            temp, fl = round(weather.temperature), round(weather.feels_like)
+            if second_unit >= 5 and temp != fl:
                 return f'⇄{temperature(weather.feels_like, UNITS)}'
             else:
-                prefix = msg(lang, 'temp_prefix')
                 return f'T{temperature(weather.temperature, UNITS)}'
 
         output_map = {
-            '--description': lambda: weather.description.capitalize(),
-            '--feels-like': lambda: temperature(weather.feels_like, UNITS),
-            '--humidity': lambda: f'{weather.humidity}%',
-            '--icon': lambda: icons(weather.icon),
-            '--id': lambda: (str(weather.city_id)
-                             if weather.city_id is not None else 'N/A'),
-            '--name': lambda: weather.city_name,
-            '--pressure': lambda: pressure(weather.pressure, UNITS),
-            '--sunrise': lambda: weather.sunrise_str,
-            '--sunset': lambda: weather.sunset_str,
-            '--temp': lambda: temperature(weather.temperature, UNITS),
-            '--temp-feels-like': temp_feels_like_output,
-            '--visibility': lambda: str(
-                visibility(weather.visibility, UNITS)
-                if weather.visibility is not None
-                else 'N/A'),
-            '--wind': lambda: f'{wind(weather.wind_speed, UNITS)} '
-                                     f'{weather.wind_direction}',
+            '--temp':        lambda: temperature(weather.temperature, UNITS),
+            '-t':            lambda: temperature(weather.temperature, UNITS),
+            '--toggle':      toggle_output,
+            '-T':            toggle_output,
+            '--feels-like':  lambda: temperature(weather.feels_like, UNITS),
+            '-l':            lambda: temperature(weather.feels_like, UNITS),
+            '--desc-cap': lambda: weather.description.capitalize(),
+            '-D': lambda: weather.description.capitalize(),
+            '--description': lambda: weather.description,
+            '-d':            lambda: weather.description,
+            '--humidity':    lambda: f'{weather.humidity}%',
+            '-u':            lambda: f'{weather.humidity}%',
+            '--pressure':    lambda: pressure(weather.pressure, UNITS),
+            '-p':            lambda: pressure(weather.pressure, UNITS),
+            '--wind':        lambda: f'{wind(weather.wind_speed, UNITS)}'
+                             f' {weather.wind_direction}',
+            '-w':            lambda: f'{wind(weather.wind_speed, UNITS)}'
+                             f' {weather.wind_direction}',
+            '--visibility':  lambda: (
+                             str(visibility(weather.visibility, UNITS)
+                             if weather.visibility is not None else 'N/A')
+                             ),
+            '-b': lambda: (str(visibility(weather.visibility, UNITS)
+                              if weather.visibility is not None else 'N/A')
+                             ),
+            '--icon':        lambda: icons(weather.icon),
+            '-i':            lambda: icons(weather.icon),
+            '--name':        lambda: weather.city_name,
+            '-n':            lambda: weather.city_name,
+            '--id': lambda: (
+                str(weather.city_id) if weather.city_id is not None else 'N/A'
+                ),
+            '--sunrise':     lambda: weather.sunrise_str,
+            '--sunset':      lambda: weather.sunset_str,
+            '-r':     lambda: weather.sunrise_str,
+            '-s':      lambda: weather.sunset_str,
         }
 
-        # Aliases that refer to the same output, to avoid duplicates
-        aliases = {'-t': '--temp', '--temp': '-t', '-d': '--description',
-                   '--description': '-d',
-                   '--temp-feels-like': '--temp-feels-like'}
+        # Aliases para evitar duplicados
+        aliases = {
+            '-t':            '--temp',
+            '--temp':        '-t',
+            '-T':            '--toggle',
+            '--toggle':      '-T',
+            '-l':            '--feels-like',
+            '--feels-like':  '-l',
+            '-d':            '--description',
+            '--description': '-d',
+            '-u':            '--humidity',
+            '--humidity':    '-u',
+            '-p':            '--pressure',
+            '--pressure':    '-p',
+            '-w':            '--wind',
+            '--wind':        '-w',
+            '-b':            '--visibility',
+            '--visibility':  '-b',
+            '-i':            '--icon',
+            '--icon':        '-i',
+            '-n':            '--name',
+            '--name':        '-n',
+        }
 
         seen = set()
         outputs = []
         for arg in argv[1:]:
-            key = arg.split('=')[0]
-            if key in output_map and key not in seen:
-                seen.add(key)
-                seen.add(aliases.get(key, key))
-                outputs.append(output_map[key]())
+            if not arg.startswith('-'):
+                outputs.append(arg)
+                continue
 
-        print(args.space.join(outputs))
+            if not arg.startswith('--') and len(arg) > 2:
+                expanded = [f'-{c}' for c in arg[1:]]
+            else:
+                expanded = [arg]
+
+            for key in expanded:
+                if key in output_map and key not in seen:
+                    seen.add(key)
+                    seen.add(aliases.get(key, key))
+                    outputs.append(output_map[key]())
+
+        if outputs:
+            print(args.space.join(outputs))
+        else:
+            default_report(weather, lang, UNITS)
 
     except OWMError as exc:
         print(exc)
