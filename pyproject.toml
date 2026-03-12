@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "owm"
-version = "0.5.0"
+dynamic = ["version"]
 description = "OpenWeatherMap CLI client"
 readme = "README.md"
 license = { text = "GPL-3.0" }
 requires-python = ">=3.10"
 authors = [
-    {name = "Juan Perez", email = "juanperez@dominio.co"}
+    {name = "Pablo Alejandro Carravetti", email = "gpablinux@gmail.com"}
 ]
 dependencies = [
     "requests",
@@ -30,3 +30,6 @@ include = ["owm*"]
 
 [tool.setuptools.package-data]
 owm = ["locales/*/LC_MESSAGES/owm.mo"]
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}

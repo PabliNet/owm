@@ -36,8 +36,8 @@ pressure = lambda v, u: (
 )
 
 visibility = lambda v, u: (
-    f'{n(v / 1000)}Km' if u == 'metric' and v != 10000
-    else f'{n(v * 0.00062137)}mi'
+    f'{n(v / 1000)}Km' if u == 'metric' or v == 10000
+    else f'{n(v * 0.00062137, 2)}mi'
 )
 
 wind = lambda v, u: (
