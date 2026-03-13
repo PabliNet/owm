@@ -150,6 +150,9 @@ msgstr "ID de la ciudad en OWM (solo modo clima)"
 msgid "help_space"
 msgstr "Separador entre campos de salida"
 
+msgid "width_label"
+msgstr "27"
+
 msgid "label_name"
 msgstr "Localidad"
 

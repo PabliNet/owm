@@ -150,6 +150,9 @@ msgstr "OWM city ID (weather mode only)"
 msgid "help_space"
 msgstr "Separator between output fields"
 
+msgid "width_label"
+msgstr "27"
+
 msgid "label_name"
 msgstr "Location"
 

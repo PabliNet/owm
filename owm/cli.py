@@ -145,6 +145,7 @@ def apply_env_defaults(args) -> None:
 def default_report(weather, lang: str, units: str) -> None:
     '''Reporte completo cuando no se pasan flags de salida.'''
     m = lambda key: msg(lang, key)
+    _u = lambda label: f'\x1b[1;4m{label}\x1b[24m:\x1b[0m'
     fl_short = msg(lang, 'feels_like_short')
     vis = (
         str(visibility(weather.visibility, units))
@@ -152,19 +153,21 @@ def default_report(weather, lang: str, units: str) -> None:
     )
     temp = temperature(weather.temperature, units)
     feels = temperature(weather.feels_like, units)
-    desc = f"{icons(weather.icon)}: {weather.description.capitalize()}"
-    print(f"{m('label_name')}: {weather.city_name}")
-    print(f"{m('label_description')}: {desc}")
-    print(f"{m('label_temp')}: {temp} ({fl_short} {feels})")
-    print(f"{m('label_humidity')}: {weather.humidity}%")
-    print(f"{m('label_pressure')}: {pressure(weather.pressure, units)}")
-    print(f"{m('label_visibility')}: {vis}")
+    desc = f"{icons(weather.icon)} {weather.description.capitalize()}"
+    nl = (int(msg(lang, 'width_label'))
+          if msg(lang, 'width_label').isdecimal() else 40)
+    print(f"{_u(m('label_name')):<{nl}} {weather.city_name}")
+    print(f"{_u(m('label_description')):<{nl}} {desc}")
+    print(f"{_u(m('label_temp')):<{nl}} {temp} ({fl_short} {feels})")
+    print(f"{_u(m('label_humidity')):<{nl}} {weather.humidity}%")
+    print(f"{_u(m('label_pressure')):<{nl}} {pressure(weather.pressure, units)}")
+    print(f"{_u(m('label_visibility')):<{nl}} {vis}")
     print(
-        f"{m('label_wind')}: "
+        f"{_u(m('label_wind')):<{nl}} "
         f"{wind(weather.wind_speed, units)} {weather.wind_direction}"
     )
-    print(f"{m('label_sunrise')}: {weather.sunrise_str}")
-    print(f"{m('label_sunset')}: {weather.sunset_str}")
+    print(f"{_u(m('label_sunrise')):<{nl}} {weather.sunrise_str}")
+    print(f"{_u(m('label_sunset')):<{nl}} {weather.sunset_str}")
 
 def main() -> None:
     parser = build_parser(detect_lang())
