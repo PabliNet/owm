@@ -150,9 +150,6 @@ msgstr "OWM city ID (weather mode only)"
 msgid "help_space"
 msgstr "Separator between output fields"
 
-msgid "width_label"
-msgstr "27"
-
 msgid "label_name"
 msgstr "Location"
 
@@ -183,3 +180,5 @@ msgstr "Sunset"
 msgid "feels_like_short"
 msgstr "FL"
 
+msgid "wind_directions"
+msgstr "N NE E SE S SW W NW"

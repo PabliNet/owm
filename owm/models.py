@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 
+from owm.i18n import msg
+
 
 @dataclass(slots=True)
 class City:
@@ -82,10 +84,9 @@ class Weather:
     def sunset_str(self) -> str:
         return self.sunset_local.strftime("%H:%M")
 
-    @property
-    def wind_direction(self) -> str:
+    def wind_direction(self, lang: str = 'en') -> str:
         if self.wind_deg is None:
             return "N/A"
-        directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        directions = msg(lang, 'wind_directions').split()
         index = round(self.wind_deg / 45) % 8
         return directions[index]

@@ -150,9 +150,6 @@ msgstr "ID de la ciudad en OWM (solo modo clima)"
 msgid "help_space"
 msgstr "Separador entre campos de salida"
 
-msgid "width_label"
-msgstr "27"
-
 msgid "label_name"
 msgstr "Localidad"
 
@@ -183,3 +180,5 @@ msgstr "Ocaso"
 msgid "feels_like_short"
 msgstr "ST"
 
+msgid "wind_directions"
+msgstr "N NE E SE S SO O NO"

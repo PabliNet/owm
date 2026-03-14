@@ -145,7 +145,15 @@ def apply_env_defaults(args) -> None:
 def default_report(weather, lang: str, units: str) -> None:
     '''Reporte completo cuando no se pasan flags de salida.'''
     m = lambda key: msg(lang, key)
-    _u = lambda label: f'\x1b[1;4m{label}\x1b[24m:\x1b[0m'
+    keys = [
+        'label_name', 'label_description', 'label_temp',
+        'label_humidity', 'label_pressure', 'label_visibility',
+        'label_wind', 'label_sunrise', 'label_sunset',
+    ]
+    width = max(len(m(k)) for k in keys)
+    _u = lambda label: (
+        f'\x1b[1;4m{label}\x1b[24m:\x1b[0m' + ' ' * (width - len(label))
+    )
     fl_short = msg(lang, 'feels_like_short')
     vis = (
         str(visibility(weather.visibility, units))
@@ -154,20 +162,18 @@ def default_report(weather, lang: str, units: str) -> None:
     temp = temperature(weather.temperature, units)
     feels = temperature(weather.feels_like, units)
     desc = f"{icons(weather.icon)} {weather.description.capitalize()}"
-    nl = (int(msg(lang, 'width_label'))
-          if msg(lang, 'width_label').isdecimal() else 40)
-    print(f"{_u(m('label_name')):<{nl}} {weather.city_name}")
-    print(f"{_u(m('label_description')):<{nl}} {desc}")
-    print(f"{_u(m('label_temp')):<{nl}} {temp} ({fl_short} {feels})")
-    print(f"{_u(m('label_humidity')):<{nl}} {weather.humidity}%")
-    print(f"{_u(m('label_pressure')):<{nl}} {pressure(weather.pressure, units)}")
-    print(f"{_u(m('label_visibility')):<{nl}} {vis}")
+    print(f"{_u(m('label_name'))} {weather.city_name}")
+    print(f"{_u(m('label_description'))} {desc}")
+    print(f"{_u(m('label_temp'))} {temp} ({fl_short} {feels})")
+    print(f"{_u(m('label_humidity'))} {weather.humidity}%")
+    print(f"{_u(m('label_pressure'))} {pressure(weather.pressure, units)}")
+    print(f"{_u(m('label_visibility'))} {vis}")
     print(
-        f"{_u(m('label_wind')):<{nl}} "
-        f"{wind(weather.wind_speed, units)} {weather.wind_direction}"
+        f"{_u(m('label_wind'))} "
+        f"{wind(weather.wind_speed, units)} {weather.wind_direction(lang)}"
     )
-    print(f"{_u(m('label_sunrise')):<{nl}} {weather.sunrise_str}")
-    print(f"{_u(m('label_sunset')):<{nl}} {weather.sunset_str}")
+    print(f"{_u(m('label_sunrise'))} {weather.sunrise_str}")
+    print(f"{_u(m('label_sunset'))} {weather.sunset_str}")
 
 def main() -> None:
     parser = build_parser(detect_lang())
@@ -273,9 +279,9 @@ def main() -> None:
             '--pressure':    lambda: pressure(weather.pressure, UNITS),
             '-p':            lambda: pressure(weather.pressure, UNITS),
             '--wind':        lambda: f'{wind(weather.wind_speed, UNITS)}'
-                             f' {weather.wind_direction}',
+                             f' {weather.wind_direction(lang)}',
             '-w':            lambda: f'{wind(weather.wind_speed, UNITS)}'
-                             f' {weather.wind_direction}',
+                             f' {weather.wind_direction(lang)}',
             '--visibility':  lambda: (
                              str(visibility(weather.visibility, UNITS)
                              if weather.visibility is not None else 'N/A')
