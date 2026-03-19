@@ -1,7 +1,7 @@
 from gettext import gettext, GNUTranslations, translation
 from pathlib import Path
 
-_LOCALEDIR = Path(__file__).parent / 'locales'
+_LOCALEDIR = Path(__file__).parent / 'locale'
 _FALLBACK_LANG = 'en'
 _translations: dict = {}
 

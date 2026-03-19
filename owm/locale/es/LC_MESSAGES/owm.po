@@ -1,0 +1,289 @@
+# Spanish translations for owm
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+
+msgid "add_city_alias_empty"
+msgstr "El alias no puede estar vacío"
+
+msgid "add_city_alias_exists"
+msgstr "El alias '{alias}' ya existe, ingresá otro (o C para cancelar): "
+
+msgid "add_city_alias_prompt"
+msgstr "Alias (ej: casa): "
+
+msgid "add_city_choose"
+msgstr "Elegí una ciudad (número) o [1mC[22m para cancelar: "
+
+msgid "add_city_invalid_choice"
+msgstr "Opción inválida, ingresá un número entre 1 y {max}"
+
+msgid "add_city_saved"
+msgstr "Guardado {name} como '{alias}'"
+
+
+msgid "alias_invalid"
+msgstr "El alias solo puede contener letras minúsculas, números y guiones bajos"
+
+msgid "api_key_required"
+msgstr "Se requiere API key: use --key o configure OWM_API_KEY"
+
+
+
+msgid "cache_cleared"
+msgstr "Caché eliminado"
+
+msgid "cache_empty"
+msgstr "El caché ya está vacío"
+
+msgid "cache_no_data"
+msgstr "No hay datos en el caché"
+
+msgid "cities_no_data"
+msgstr "{prog}: no hay localidades guardadas"
+
+msgid "city_conflict"
+msgstr "--city no puede usarse con --geo o --lat/--lon"
+
+msgid "city_no_output"
+msgstr "Las opciones de salida no funcionan con --city"
+
+msgid "city_not_found"
+msgstr "Ciudad no encontrada"
+
+msgid "dl-city"
+msgstr "Descargando localidades…"
+
+msgid "feels_like_short"
+msgstr "ST"
+
+msgid "geo_alias_bad_entry"
+msgstr "La entrada '{alias}' en ~/.owm/cities.json debe tener 'geo' o 'lat'/'lon'"
+
+msgid "geo_alias_no_file"
+msgstr "'{alias}' no es LAT,LON válido y ~/.owm/cities.json no existe"
+
+msgid "geo_alias_not_found"
+msgstr "'{alias}' no encontrado en ~/.owm/cities.json"
+
+msgid "geo_alias_read_error"
+msgstr "Error al leer ~/.owm/cities.json: {error}"
+
+msgid "geo_conflict"
+msgstr "--geo no puede usarse con --lat/--lon"
+
+msgid "geo_format"
+msgstr "--geo debe tener formato LAT,LON"
+
+msgid "geo_format_error"
+msgstr "--geo debe tener formato LAT,LON (ej: -34.61,-58.38)"
+
+msgid "group_auth"
+msgstr "autenticación"
+
+msgid "group_config"
+msgstr "configuración"
+
+msgid "group_local"
+msgstr "geolocalización"
+
+msgid "group_output"
+msgstr "salidas"
+
+msgid "help_add_city"
+msgstr "Buscar y guardar una ciudad en ~/.owm/cities.json"
+
+msgid "help_alias"
+msgstr "Alias para usar con --geo (se usa con --add-city)"
+
+msgid "help_city"
+msgstr "Buscar ciudad por nombre (modo geolocalización)"
+
+msgid "help_clear_cache"
+msgstr "Eliminar el caché del clima"
+
+msgid "help_description"
+msgstr "Descripción del clima en minúsculas"
+
+msgid "help_description_capitalize"
+msgstr "Descripción del clima primera letra en mayúscula"
+
+msgid "help_feels_like"
+msgstr "Sensación térmica"
+
+msgid "help_geo"
+msgstr "Coordenadas LAT,LON o alias de ciudad (o variable OWM_GEO)"
+
+msgid "help_humidity"
+msgstr "Humedad relativa"
+
+msgid "help_icon"
+msgstr "Código de ícono del clima"
+
+msgid "help_icon_next"
+msgstr "Pega el ícono al campo de salida anterior (sin separador)"
+
+msgid "help_icon_prev"
+msgstr "Pega el ícono al campo de salida siguiente (sin separador)"
+
+msgid "help_id"
+msgstr "ID de la ciudad en OWM (solo modo clima)"
+
+msgid "help_key"
+msgstr "API key de OpenWeatherMap (o variable OWM_API_KEY)"
+
+msgid "help_lang"
+msgstr "Idioma de la descripción del clima"
+
+msgid "help_last_update"
+msgstr "Mostrar la hora de la última actualización del caché"
+
+msgid "help_lat"
+msgstr "Latitud (usar junto con --lon, o variable OWM_GEO)"
+
+msgid "help_list"
+msgstr "Listar ciudades guardadas en ~/.owm/cities.json"
+
+msgid "help_list_alias"
+msgstr "Listar solo los alias de ciudades guardadas"
+
+msgid "help_lon"
+msgstr "Longitud (usar junto con --lat, o variable OWM_GEO)"
+
+msgid "help_name"
+msgstr "Nombre de la ciudad (solo modo clima)"
+
+msgid "help_order"
+msgstr "Reordenar ciudades guardadas (aliases separados por coma)"
+
+msgid "help_pressure"
+msgstr "Presión atmosférica"
+
+msgid "help_remove_city"
+msgstr "Eliminar una ciudad guardada por alias"
+
+msgid "help_space"
+msgstr "Separador entre campos de salida"
+
+msgid "help_sunrise"
+msgstr "Hora de salida del sol"
+
+msgid "help_sunset"
+msgstr "Hora de puesta del sol"
+
+msgid "help_temp"
+msgstr "Temperatura"
+
+msgid "help_terminal"
+msgstr "Fuerza el comportamiento de la terminal indicada"
+
+msgid "help_time"
+msgstr "Segundos de validez del caché (o variable OWM_SECONDS)"
+
+msgid "help_toggle"
+msgstr "Temperatura o sensación térmica alternando cada 5 segundos"
+
+msgid "help_units"
+msgstr "Sistema de unidades (o variable OWM_UNITS), solo metric (por defecto) o imperial"
+
+msgid "help_version"
+msgstr "Muestra la versión y finaliza"
+
+msgid "help_visibility"
+msgstr "Visibilidad"
+
+msgid "help_wind"
+msgstr "Velocidad y dirección del viento"
+
+msgid "invalid_format"
+msgstr "Formato inválido"
+
+msgid "invalid_lat_format"
+msgstr "Formato de latitud inválido"
+
+msgid "invalid_lon_format"
+msgstr "Formato de longitud inválido"
+
+msgid "label_description"
+msgstr "Descripción"
+
+msgid "label_humidity"
+msgstr "Humedad"
+
+msgid "label_name"
+msgstr "Localidad"
+
+msgid "label_pressure"
+msgstr "Presión"
+
+msgid "label_sunrise"
+msgstr "Amanecer"
+
+msgid "label_sunset"
+msgstr "Ocaso"
+
+msgid "label_temp"
+msgstr "Temperatura"
+
+msgid "label_visibility"
+msgstr "Visibilidad"
+
+msgid "label_wind"
+msgstr "Viento"
+
+msgid "lat"
+msgstr "Latitud"
+
+msgid "lat_lon_together"
+msgstr "--lat y --lon deben usarse juntos"
+
+msgid "lat_range"
+msgstr "La latitud debe estar entre -90 y 90"
+
+msgid "location_required"
+msgstr "Debe indicar ubicación: --geo, --lat/--lon o --city"
+
+msgid "lon"
+msgstr "Longitud"
+
+msgid "lon_range"
+msgstr "La longitud debe estar entre -180 y 180"
+
+msgid "order_alias_not_found"
+msgstr "Aliases no encontrados en cities.json: {aliases}"
+
+msgid "order_missing_aliases"
+msgstr "Aliases faltantes en el orden: {aliases}"
+
+msgid "order_saved"
+msgstr "Orden guardado"
+
+msgid "output_required"
+msgstr "Debe indicar al menos una opción de salida"
+
+msgid "remove_city_saved"
+msgstr "{name} eliminado"
+
+msgid "temp_prefix"
+msgstr "T"
+
+msgid "weather_api_error"
+msgstr "Error al obtener el clima"
+
+msgid "weather_connection_error"
+msgstr "Error al conectar con el servicio del clima: {exc}"
+
+msgid "weather_invalid_api_structure"
+msgstr "Estructura de la API del clima inválida"
+
+msgid "weather_invalid_json"
+msgstr "Respuesta JSON inválida de la API del clima"
+
+msgid "weather_unexpected_format"
+msgstr "Formato de respuesta inesperado de la API del clima"
+
+msgid "wind_directions"
+msgstr "N NE E SE S SO O NO"

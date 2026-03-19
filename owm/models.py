@@ -34,17 +34,23 @@ class Weather:
     city_id: Optional[int] = None
 
     @classmethod
-    def from_api(cls, data: dict) -> "Weather":
+    def from_api(cls, data: dict, lang: str = 'en') -> "Weather":
         try:
             sys_data = data["sys"]
             main_data = data["main"]
             weather_data = data["weather"][0]
             wind_data = data.get("wind", {})
         except (KeyError, IndexError) as exc:
-            raise ValueError("Invalid weather API structure") from exc
+            raise ValueError(
+                msg(lang, 'weather_invalid_api_structure')
+            ) from exc
 
-        sunrise_utc = datetime.fromtimestamp(sys_data["sunrise"], tz=timezone.utc)
-        sunset_utc = datetime.fromtimestamp(sys_data["sunset"], tz=timezone.utc)
+        sunrise_utc = datetime.fromtimestamp(
+            sys_data["sunrise"], tz=timezone.utc
+        )
+        sunset_utc = datetime.fromtimestamp(
+            sys_data["sunset"], tz=timezone.utc
+        )
 
         return cls(
             city_name=data["name"],

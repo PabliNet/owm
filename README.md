@@ -93,6 +93,7 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 
 | Flag | Description |
 |------|-------------|
+| `--clear-cache` | Clear the weather cache |
 | `--lang LANG` | Language for weather description (or `LANG` env var, default: `en`) |
 | `--terminal TERMINAL` | Terminal type, e.g. `conky` (or `WINDOW_TERMINAL` env var) |
 | `--time SECONDS` | Cache validity in seconds (or `OWM_SECONDS` env var, default: 300) |
@@ -110,6 +111,7 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | `--icon` | `-i` | Weather icon code |
 | `--id` | | OWM city ID |
 | `--feels-like` | `-l` | Feels like temperature |
+| `--last-update` | | Last cache update time |
 | `--name` | `-n` | City name |
 | `--pressure` | `-p` | Atmospheric pressure |
 | `--space SPACE` | | Separator between output fields (default: space) |
@@ -277,6 +279,7 @@ python3 -m owm --city=Paris --key=TU_KEY
 
 | Flag | Descripción |
 |------|-------------|
+| `--clear-cache` | Eliminar el caché del clima |
 | `--lang LANG` | Idioma de la descripción del clima (o variable `LANG`, por defecto: `en`) |
 | `--terminal TERMINAL` | Tipo de terminal, ej. `conky` (o variable `WINDOW_TERMINAL`) |
 | `--time SECONDS` | Segundos de validez del caché (o variable `OWM_SECONDS`, por defecto: 300) |
@@ -294,6 +297,7 @@ python3 -m owm --city=Paris --key=TU_KEY
 | `--icon` | `-i` | Código de ícono del clima |
 | `--id` | | ID de la ciudad en OWM |
 | `--feels-like` | `-l` | Sensación térmica |
+| `--last-update` | | Hora de la última actualización del caché |
 | `--name` | `-n` | Nombre de la ciudad |
 | `--pressure` | `-p` | Presión atmosférica |
 | `--space SPACE` | | Separador entre campos de salida (por defecto: espacio) |

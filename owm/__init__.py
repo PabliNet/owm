@@ -27,4 +27,9 @@ except PackageNotFoundError:
     try:
         __version__ = (Path(__file__).parent / 'VERSION').read_text().strip()
     except FileNotFoundError:
-        __version__ = 'unknown'
+        FILE = Path(__file__).resolve().parent.parent / 'VERSION'
+        if FILE.exists():
+            with open(FILE, 'r') as f:
+                __version__ = f.read().strip()
+        else:
+            __version__ = 'unknown'

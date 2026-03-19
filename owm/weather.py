@@ -1,9 +1,9 @@
 from requests import get, RequestException
 
+from owm.i18n import msg
 from owm.models import Weather
 from owm.exceptions import OWMError
-from owm.cache import (build_cache_path, is_cache_valid, read_cache,
-                       write_cache)
+from owm.cache import build_cache_path, is_cache_valid, read_cache, write_cache
 
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
@@ -12,7 +12,7 @@ def get_weather(
     lat: float,
     lon: float,
     api_key: str,
-    lang: str = "es",
+    lang: str = "en",
     units: str = "metric",
     cache_seconds: int = 600,
     terminal: str | None = None,
@@ -23,15 +23,15 @@ def get_weather(
         cached = read_cache(cache_path)
         if cached is not None:
             try:
-                return Weather.from_api(cached)
+                return Weather.from_api(cached, lang)
             except ValueError:
-                pass  # stale/corrupt cache — fall through to API
+                pass  # caché obsoleto — caer a la API
 
     params = {
         "lat": lat,
         "lon": lon,
         "appid": api_key,
-        "units": "metric",
+        "units": units,
         "lang": lang,
     }
 
@@ -43,23 +43,29 @@ def get_weather(
         cached = read_cache(cache_path)
         if cached is not None:
             try:
-                return Weather.from_api(cached)
+                return Weather.from_api(cached, lang)
             except ValueError:
                 pass
         if terminal and terminal.lower() == 'conky':
             print('--')
             raise SystemExit(0)
-        raise OWMError(f"Error connecting to weather service: {exc}") from exc
+        raise OWMError(
+            msg(lang, 'weather_connection_error').format(exc=exc)
+        ) from exc
 
     try:
         data = response.json()
     except ValueError as exc:
-        raise OWMError("Invalid JSON response from weather API") from exc
+        raise OWMError(
+            msg(lang, 'weather_invalid_json')
+        ) from exc
 
     try:
-        weather = Weather.from_api(data)
+        weather = Weather.from_api(data, lang)
     except ValueError as exc:
-        raise OWMError("Unexpected response format from weather API") from exc
+        raise OWMError(
+            msg(lang, 'weather_unexpected_format')
+        ) from exc
 
     write_cache(cache_path, data)
     return weather

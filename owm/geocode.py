@@ -1,14 +1,14 @@
-import requests
+from requests import get, RequestException
 from urllib.parse import urlencode
 
 from owm.i18n import msg
-from owm.exceptions import CityNotFoundError
+from owm.exceptions import OWMError, CityNotFoundError
 from owm.models import City
 
 BASE_URL = "https://api.openweathermap.org/geo/1.0/direct"
 
 
-def city_name_to_list(city: str, api_key: str, lang: str = "es") -> list[City]:
+def city_name_to_list(city: str, api_key: str, lang: str = "en") -> list[City]:
     params = {
         "q": city,
         "limit": 5,
@@ -17,8 +17,14 @@ def city_name_to_list(city: str, api_key: str, lang: str = "es") -> list[City]:
     }
 
     url = f"{BASE_URL}?{urlencode(params)}"
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
+
+    try:
+        response = get(url, timeout=10)
+        response.raise_for_status()
+    except RequestException as exc:
+        raise OWMError(
+            msg(lang, 'weather_connection_error').format(exc=exc)
+        ) from exc
 
     data = response.json()
 
