@@ -24,14 +24,11 @@ msgstr "Invalid choice, enter a number between 1 and {max}"
 msgid "add_city_saved"
 msgstr "Saved {name} as '{alias}'"
 
-
 msgid "alias_invalid"
 msgstr "Alias can only contain lowercase letters, numbers and underscores"
 
 msgid "api_key_required"
 msgstr "API key required: use --key or set OWM_API_KEY"
-
-
 
 msgid "cache_cleared"
 msgstr "Cache cleared"
@@ -84,6 +81,9 @@ msgstr "--geo must be in format LAT,LON (e.g. -34.61,-58.38)"
 msgid "group_auth"
 msgstr "authentication"
 
+msgid "group_cities"
+msgstr "city management"
+
 msgid "group_config"
 msgstr "setting"
 
@@ -123,6 +123,9 @@ msgstr "Relative humidity"
 msgid "help_icon"
 msgstr "Weather icon code"
 
+msgid "help_icon_emoji"
+msgstr "Weather icon as color emoji (for Noto Color Emoji font)"
+
 msgid "help_icon_next"
 msgstr "Attach icon to the previous output field (no separator)"
 
@@ -156,11 +159,17 @@ msgstr "Longitude (use with --lat, or OWM_GEO env var)"
 msgid "help_name"
 msgstr "City name (weather mode only)"
 
+msgid "help_offline"
+msgstr "Use cached data without connecting to the API"
+
 msgid "help_order"
 msgstr "Reorder saved cities (comma-separated aliases)"
 
 msgid "help_pressure"
 msgstr "Atmospheric pressure"
+
+msgid "help_raw"
+msgstr "Print raw values without units or formatting"
 
 msgid "help_remove_city"
 msgstr "Remove a saved city by alias"
@@ -180,6 +189,12 @@ msgstr "Temperature"
 msgid "help_terminal"
 msgstr "Force behavior as if running in the specified terminal"
 
+msgid "help_text_next"
+msgstr "Attach the following literal to the previous output field"
+
+msgid "help_text_prev"
+msgstr "Attach the preceding literal to the next output field"
+
 msgid "help_time"
 msgstr "Cache validity in seconds (or OWM_SECONDS env var)"
 
@@ -197,6 +212,12 @@ msgstr "Visibility"
 
 msgid "help_wind"
 msgstr "Wind speed and direction"
+
+msgid "help_wind_deg"
+msgstr "Wind direction in degrees"
+
+msgid "help_wind_speed"
+msgstr "Raw wind speed value"
 
 msgid "invalid_format"
 msgstr "Invalid format"

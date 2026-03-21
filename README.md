@@ -85,9 +85,20 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | Flag | Description |
 |------|-------------|
 | `--city CITY` | Search city by name (geocoding mode) |
-| `--geo LAT,LON` | Coordinates as `LAT,LON` (or `OWM_GEO` env var) |
+| `--geo LAT,LON` | Coordinates as `LAT,LON`, or city alias (or `OWM_GEO` env var) |
 | `--lat LAT` | Latitude (use with `--lon`, or `OWM_GEO` env var) |
 | `--lon LON` | Longitude (use with `--lat`, or `OWM_GEO` env var) |
+
+#### City management
+
+| Flag | Description |
+|------|-------------|
+| `--add-city CITY` | Search and save a city to `~/.owm/cities.json` |
+| `--alias ALIAS` | Alias to use with `--geo` (used with `--add-city`) |
+| `--list` | List saved cities from `~/.owm/cities.json` |
+| `--list-alias` | List only saved city aliases |
+| `--order ALIASES` | Reorder saved cities (comma-separated aliases) |
+| `--remove-city ALIAS` | Remove a saved city by alias |
 
 #### Configuration
 
@@ -95,11 +106,11 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 |------|-------------|
 | `--clear-cache` | Clear the weather cache |
 | `--lang LANG` | Language for weather description (or `LANG` env var, default: `en`) |
+| `--offline` | Use cached data without connecting to the API |
+| `--raw` | Print raw values without units or formatting |
 | `--terminal TERMINAL` | Terminal type, e.g. `conky` (or `WINDOW_TERMINAL` env var) |
 | `--time SECONDS` | Cache validity in seconds (or `OWM_SECONDS` env var, default: 300) |
 | `--units UNITS` | Unit system: `metric` (default) or `imperial` (or `OWM_UNITS` env var) |
-| `-h, --help` | Show help and exit |
-| `-v, --version` | Show version and exit |
 
 #### Output (weather mode only)
 
@@ -108,19 +119,33 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | `--visibility` | `-b` | Visibility |
 | `--description` | `-d` | Weather description (lowercase) |
 | `--desc-cap` | `-D` | Weather description (capitalized) |
-| `--icon` | `-i` | Weather icon code |
+| `--icon` | `-i` | Weather icon (text symbols) |
+| `--icon-emoji` | `-I` | Weather icon (color emoji, for Noto Color Emoji font) |
+| `--icon-next` | | Attach icon to the previous output field (no separator) |
+| `--icon-prev` | | Attach icon to the next output field (no separator) |
 | `--id` | | OWM city ID |
 | `--feels-like` | `-l` | Feels like temperature |
 | `--last-update` | | Last cache update time |
-| `--name` | `-n` | City name |
+| `--name` | `-n` | City name (reads from cache, no API call needed) |
 | `--pressure` | `-p` | Atmospheric pressure |
 | `--space SPACE` | | Separator between output fields (default: space) |
 | `--sunrise` | `-r` | Sunrise time |
 | `--sunset` | `-s` | Sunset time |
 | `--temp` | `-t` | Temperature |
+| `--text-next` | | Attach the following literal to the previous output field |
+| `--text-prev` | | Attach the preceding literal to the next output field |
 | `--toggle` | `-T` | Temperature or feels-like, alternating every 5 seconds |
 | `--humidity` | `-u` | Relative humidity |
 | `--wind` | `-w` | Wind speed and direction |
+| `--wind-deg` | | Wind direction in degrees (use with `--raw`) |
+| `--wind-speed` | | Wind speed raw value (use with `--raw`) |
+
+#### Options
+
+| Flag | Description |
+|------|-------------|
+| `-h, --help` | Show help and exit |
+| `-v, --version` | Show version and exit |
 
 ### Python API
 
@@ -184,6 +209,10 @@ owm --geo=-34.61,-58.38 --key=YOUR_KEY --sunrise --sunset --space=" / "
 
 # Conky integration (prints -- when no data available)
 owm --geo=-34.61,-58.38 --key=YOUR_KEY --terminal=conky -T
+
+# Conky with Noto Color Emoji font
+owm --geo=-34.61,-58.38 --key=YOUR_KEY --offline --text-prev --text-next \
+    '${font Noto Color Emoji}' -I '${font}' -Tuw --space=' · '
 ```
 
 ### Changes in 0.5.0
@@ -271,9 +300,20 @@ python3 -m owm --city=Paris --key=TU_KEY
 | Flag | Descripción |
 |------|-------------|
 | `--city CITY` | Buscar ciudad por nombre (modo geolocalización) |
-| `--geo LAT,LON` | Coordenadas en formato `LAT,LON` (o variable `OWM_GEO`) |
+| `--geo LAT,LON` | Coordenadas en formato `LAT,LON` o alias de ciudad (o variable `OWM_GEO`) |
 | `--lat LAT` | Latitud (usar junto con `--lon`, o variable `OWM_GEO`) |
 | `--lon LON` | Longitud (usar junto con `--lat`, o variable `OWM_GEO`) |
+
+#### Gestión de localidades
+
+| Flag | Descripción |
+|------|-------------|
+| `--add-city CITY` | Buscar y guardar una ciudad en `~/.owm/cities.json` |
+| `--alias ALIAS` | Alias para usar con `--geo` (se usa con `--add-city`) |
+| `--list` | Listar ciudades guardadas en `~/.owm/cities.json` |
+| `--list-alias` | Listar solo los alias de ciudades guardadas |
+| `--order ALIASES` | Reordenar ciudades guardadas (aliases separados por coma) |
+| `--remove-city ALIAS` | Eliminar una ciudad guardada por alias |
 
 #### Configuración
 
@@ -281,11 +321,11 @@ python3 -m owm --city=Paris --key=TU_KEY
 |------|-------------|
 | `--clear-cache` | Eliminar el caché del clima |
 | `--lang LANG` | Idioma de la descripción del clima (o variable `LANG`, por defecto: `en`) |
+| `--offline` | Usar datos del caché sin conectarse a la API |
+| `--raw` | Imprimir valores crudos sin unidades ni formato |
 | `--terminal TERMINAL` | Tipo de terminal, ej. `conky` (o variable `WINDOW_TERMINAL`) |
 | `--time SECONDS` | Segundos de validez del caché (o variable `OWM_SECONDS`, por defecto: 300) |
 | `--units UNITS` | Sistema de unidades: `metric` (por defecto) o `imperial` (o variable `OWM_UNITS`) |
-| `-h, --help` | Mostrar ayuda y salir |
-| `-v, --version` | Mostrar versión y salir |
 
 #### Salidas (solo modo clima)
 
@@ -294,19 +334,33 @@ python3 -m owm --city=Paris --key=TU_KEY
 | `--visibility` | `-b` | Visibilidad |
 | `--description` | `-d` | Descripción del clima en minúsculas |
 | `--desc-cap` | `-D` | Descripción del clima con primera letra en mayúscula |
-| `--icon` | `-i` | Código de ícono del clima |
+| `--icon` | `-i` | Ícono del clima (símbolos de texto) |
+| `--icon-emoji` | `-I` | Ícono del clima (emoji a color, para fuente Noto Color Emoji) |
+| `--icon-next` | | Pega el ícono al campo de salida anterior (sin separador) |
+| `--icon-prev` | | Pega el ícono al campo de salida siguiente (sin separador) |
 | `--id` | | ID de la ciudad en OWM |
 | `--feels-like` | `-l` | Sensación térmica |
 | `--last-update` | | Hora de la última actualización del caché |
-| `--name` | `-n` | Nombre de la ciudad |
+| `--name` | `-n` | Nombre de la ciudad (lee del caché, no requiere API) |
 | `--pressure` | `-p` | Presión atmosférica |
 | `--space SPACE` | | Separador entre campos de salida (por defecto: espacio) |
 | `--sunrise` | `-r` | Hora de salida del sol |
 | `--sunset` | `-s` | Hora de puesta del sol |
 | `--temp` | `-t` | Temperatura |
+| `--text-next` | | Pega el literal siguiente al campo de salida anterior |
+| `--text-prev` | | Pega el literal anterior al campo de salida siguiente |
 | `--toggle` | `-T` | Temperatura o sensación térmica, alternando cada 5 segundos |
 | `--humidity` | `-u` | Humedad relativa |
 | `--wind` | `-w` | Velocidad y dirección del viento |
+| `--wind-deg` | | Dirección del viento en grados (usar con `--raw`) |
+| `--wind-speed` | | Velocidad del viento sin formato (usar con `--raw`) |
+
+#### Opciones
+
+| Flag | Descripción |
+|------|-------------|
+| `-h, --help` | Mostrar ayuda y salir |
+| `-v, --version` | Mostrar versión y salir |
 
 ### API de Python
 
@@ -370,6 +424,10 @@ owm --geo=-34.61,-58.38 --key=TU_KEY --sunrise --sunset --space=" / "
 
 # Integración con Conky (imprime -- cuando no hay datos disponibles)
 owm --geo=-34.61,-58.38 --key=TU_KEY --terminal=conky -T
+
+# Conky con fuente Noto Color Emoji
+owm --geo=-34.61,-58.38 --key=TU_KEY --offline --text-prev --text-next \
+    '${font Noto Color Emoji}' -I '${font}' -Tuw --space=' · '
 ```
 
 ### Cambios en la versión 0.5.0

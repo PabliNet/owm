@@ -11,12 +11,15 @@ from owm import __version__
 from owm.i18n import msg
 from owm.weather import get_weather
 from owm.api import get_api_key
-from owm.cache import build_cache_path, get_cache_dir
+from owm.cache import build_cache_path, get_cache_dir, read_cache
 from owm.geocode import city_name_to_list
 from owm.exceptions import OWMError
 from owm.env import get_env
+from owm.models import Weather
 from owm.validators import Validator
-from owm.conversions import icons, pressure, temperature, visibility, wind
+from owm.conversions import (
+    convert, icons, pressure, temperature, visibility, wind
+)
 
 
 def parse_geo(value: str) -> str:
@@ -63,27 +66,34 @@ def build_parser(lang: str) -> ArgumentParser:
 
     # Ubicación
     local = parser.add_argument_group(m('group_local'))
-    local.add_argument('--add-city', default=None,
-                       dest='add_city', help=m('help_add_city'))
-    local.add_argument('--alias', default=None, help=m('help_alias'))
     local.add_argument('--city', default=None, help=m('help_city'))
     local.add_argument('--geo', type=parse_geo, default=None,
                        help=m('help_geo'))
     local.add_argument('--lat', type=str, default=None, help=m('help_lat'))
-    local.add_argument('--list', action='store_true',
-                       dest='list_cities', help=m('help_list'))
-    local.add_argument('--list-alias', action='store_true',
-                       dest='list_alias', help=m('help_list_alias'))
     local.add_argument('--lon', type=str, default=None, help=m('help_lon'))
-    local.add_argument('--order', default=None, help=m('help_order'))
-    local.add_argument('--remove-city', default=None,
-                       dest='remove_city', help=m('help_remove_city'))
+
+    # Gestión de localidades
+    cities = parser.add_argument_group(m('group_cities'))
+    cities.add_argument('--add-city', default=None,
+                        dest='add_city', help=m('help_add_city'))
+    cities.add_argument('--alias', default=None, help=m('help_alias'))
+    cities.add_argument('--list', action='store_true',
+                        dest='list_cities', help=m('help_list'))
+    cities.add_argument('--list-alias', action='store_true',
+                        dest='list_alias', help=m('help_list_alias'))
+    cities.add_argument('--order', default=None, help=m('help_order'))
+    cities.add_argument('--remove-city', default=None,
+                        dest='remove_city', help=m('help_remove_city'))
 
     # Configuración
     config = parser.add_argument_group(m('group_config'))
     config.add_argument('--clear-cache', action='store_true',
                         dest='clear_cache', help=m('help_clear_cache'))
     config.add_argument('--lang', default=None, help=m('help_lang'))
+    config.add_argument('--offline', action='store_true',
+                        help=m('help_offline'))
+    config.add_argument('--raw', action='store_true',
+                        dest='raw', help=m('help_raw'))
     config.add_argument('--terminal', default=None, help=m('help_terminal'))
     config.add_argument('--time', type=int, default=None,
                         dest='cache_seconds', metavar='SECONDS',
@@ -105,6 +115,8 @@ def build_parser(lang: str) -> ArgumentParser:
                         dest='icon_next', help=m('help_icon_next'))
     output.add_argument('--icon-prev', action='store_true',
                         dest='icon_prev', help=m('help_icon_prev'))
+    output.add_argument('-I', '--icon-emoji', action='store_true',
+                        dest='icon_emoji', help=m('help_icon_emoji'))
     output.add_argument('--id', action='store_true', help=m('help_id'))
     output.add_argument('-l', '--feels-like', action='store_true',
                         dest='feels_like', help=m('help_feels_like'))
@@ -121,12 +133,20 @@ def build_parser(lang: str) -> ArgumentParser:
                         help=m('help_sunset'))
     output.add_argument('-t', '--temp', action='store_true',
                         help=m('help_temp'))
+    output.add_argument('--text-next', action='store_true',
+                        dest='text_next', help=m('help_text_next'))
+    output.add_argument('--text-prev', action='store_true',
+                        dest='text_prev', help=m('help_text_prev'))
     output.add_argument('-T', '--toggle', action='store_true',
                         dest='toggle', help=m('help_toggle'))
     output.add_argument('-u', '--humidity', action='store_true',
                         help=m('help_humidity'))
     output.add_argument('-w', '--wind', action='store_true',
                         help=m('help_wind'))
+    output.add_argument('--wind-deg', action='store_true',
+                        dest='wind_deg_flag', help=m('help_wind_deg'))
+    output.add_argument('--wind-speed', action='store_true',
+                        dest='wind_speed_flag', help=m('help_wind_speed'))
 
     return parser
 
@@ -424,6 +444,43 @@ def clear_cache_cmd(lang: str) -> None:
         print(msg(lang, 'cache_empty'))
 
 
+def _fmt_last_update(cache_path: Path, units: str) -> str:
+    '''Formatea la hora de última actualización del caché.
+    Si es del mismo día: HH:MM:SS
+    Si es de otro día: DD/MM/YYYY HH:MM:SS o MM/DD/YYYY HH:MM:SS según units.
+    '''
+    dt = datetime.fromtimestamp(cache_path.stat().st_mtime)
+    if dt.date() == datetime.now().date():
+        return dt.strftime('%H:%M:%S')
+    if units == 'metric':
+        return dt.strftime('%d/%m/%Y %H:%M:%S')
+    return dt.strftime('%m/%d/%Y %H:%M:%S')
+
+
+def fetch_weather(
+    lat: float,
+    lon: float,
+    api_key: str,
+    lang: str,
+    units: str,
+    cache_seconds: int,
+    terminal: str | None,
+    online: bool = True,
+) -> 'Weather':
+    '''Obtiene el clima online o directo del caché según online.'''
+    if online:
+        return get_weather(
+            lat=lat, lon=lon, api_key=api_key, lang=lang,
+            units=units, cache_seconds=cache_seconds, terminal=terminal,
+        )
+    # Modo offline: leer directo del JSON
+    cache_path = build_cache_path(lat, lon, lang)
+    if not cache_path.exists():
+        raise OWMError(msg(lang, 'cache_no_data'))
+    data = loads(cache_path.read_text())
+    return Weather.from_api(data, lang)
+
+
 def apply_env_defaults(args) -> None:
     '''Completa los args faltantes desde variables de entorno.'''
     if args.key is None:
@@ -516,7 +573,34 @@ def main() -> None:
         return
 
     try:
-        api_key = get_api_key(args.key, lang)
+        # Modos que no necesitan API key
+        if args.list_cities:
+            list_cities_cmd(lang)
+            return
+
+        if args.list_alias:
+            list_alias_cmd(lang)
+            return
+
+        if args.remove_city:
+            remove_city_cmd(args.remove_city, lang)
+            return
+
+        if args.order:
+            order_cities_cmd(args.order, lang)
+            return
+
+        _api_flags = {
+            'description', 'feels_like', 'humidity', 'icon', 'pressure',
+            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+        }
+        _needs_api = (
+            args.add_city
+            or args.city
+            or (not args.offline
+                and any(getattr(args, f, False) for f in _api_flags))
+        )
+        api_key = get_api_key(args.key, lang) if _needs_api else args.key
 
         # ── Modo agregar ciudad ─────────────────────────────────────────────
         if args.add_city:
@@ -526,26 +610,6 @@ def main() -> None:
                 api_key=api_key,
                 lang=lang,
             )
-            return
-
-        # ── Modo listar ciudades ────────────────────────────────────────────
-        if args.list_cities:
-            list_cities_cmd(lang)
-            return
-
-        # ── Modo listar aliases ─────────────────────────────────────────────
-        if args.list_alias:
-            list_alias_cmd(lang)
-            return
-
-        # ── Modo eliminar ciudad ────────────────────────────────────────────
-        if args.remove_city:
-            remove_city_cmd(args.remove_city, lang)
-            return
-
-        # ── Modo reordenar ciudades ─────────────────────────────────────────
-        if args.order:
-            order_cities_cmd(args.order, lang)
             return
 
     except OWMError as exc:
@@ -562,7 +626,16 @@ def main() -> None:
         parser.error(str(exc))
 
     try:
-        api_key = get_api_key(args.key, lang)
+        _api_flags2 = {
+            'description', 'feels_like', 'humidity', 'icon', 'pressure',
+            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+        }
+        _needs_api2 = (
+            args.city
+            or (not args.offline
+                and any(getattr(args, f, False) for f in _api_flags2))
+        )
+        api_key = get_api_key(args.key, lang) if _needs_api2 else args.key
 
         # ── Modo geolocalización ────────────────────────────────────────────
         if args.city:
@@ -617,15 +690,34 @@ def main() -> None:
         # ── Modo clima ──────────────────────────────────────────────────────
         UNITS = args.units
 
-        weather = get_weather(
-            lat=args.lat,
-            lon=args.lon,
-            api_key=api_key,
-            lang=lang,
-            units='metric',
-            cache_seconds=args.cache_seconds,
-            terminal=args.terminal,
-        )
+        # Flags que solo leen del caché — no necesitan descargar
+        api_flags = {
+            'description', 'feels_like', 'humidity', 'icon', 'pressure',
+            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+        }
+        needs_download = any(getattr(args, f, False) for f in api_flags)
+        online = not args.offline
+
+        if needs_download or (not args.name and not args.last_update):
+            weather = fetch_weather(
+                lat=args.lat,
+                lon=args.lon,
+                api_key=api_key,
+                lang=lang,
+                units='metric',
+                cache_seconds=args.cache_seconds,
+                terminal=args.terminal,
+                online=online,
+            )
+        else:
+            # Solo -n y/o --last-update: leer del caché
+            cache_path = build_cache_path(args.lat, args.lon, lang)
+            if not cache_path.exists():
+                raise OWMError(msg(lang, 'cache_no_data'))
+            cached = read_cache(cache_path)
+            if cached is None:
+                raise OWMError(msg(lang, 'cache_no_data'))
+            weather = Weather.from_api(cached, lang)
 
         def toggle_output():
             second_unit = int(time()) % 10
@@ -636,34 +728,40 @@ def main() -> None:
                 return f'T{temperature(weather.temperature, UNITS)}'
 
         output_map = {
-            '--temp':        lambda: temperature(weather.temperature, UNITS),
-            '-t':            lambda: temperature(weather.temperature, UNITS),
+            '--temp':        lambda: temperature(
+                             weather.temperature, UNITS, lang),
+            '-t':            lambda: temperature(
+                             weather.temperature, UNITS, lang),
             '--toggle':      toggle_output,
             '-T':            toggle_output,
-            '--feels-like':  lambda: temperature(weather.feels_like, UNITS),
-            '-l':            lambda: temperature(weather.feels_like, UNITS),
+            '--feels-like':  lambda: temperature(
+                             weather.feels_like, UNITS, lang),
+            '-l':            lambda: temperature(
+                             weather.feels_like, UNITS, lang),
             '--desc-cap':    lambda: weather.description.capitalize(),
             '-D':            lambda: weather.description.capitalize(),
             '--description': lambda: weather.description,
             '-d':            lambda: weather.description,
             '--humidity':    lambda: f'{weather.humidity}%',
             '-u':            lambda: f'{weather.humidity}%',
-            '--pressure':    lambda: pressure(weather.pressure, UNITS),
-            '-p':            lambda: pressure(weather.pressure, UNITS),
+            '--pressure':    lambda: pressure(weather.pressure, UNITS, lang),
+            '-p':            lambda: pressure(weather.pressure, UNITS, lang),
             '--wind':        lambda: (
-                             f'{wind(weather.wind_speed, UNITS)}'
+                             f'{wind(weather.wind_speed, UNITS, lang)}'
                              f' {weather.wind_direction(lang)}'),
             '-w':            lambda: (
-                             f'{wind(weather.wind_speed, UNITS)}'
+                             f'{wind(weather.wind_speed, UNITS, lang)}'
                              f' {weather.wind_direction(lang)}'),
             '--visibility':  lambda: (
-                             str(visibility(weather.visibility, UNITS)
-                             if weather.visibility is not None else 'N/A')),
+                             str(visibility(weather.visibility, UNITS, lang))
+                             if weather.visibility is not None else 'N/A'),
             '-b':            lambda: (
-                             str(visibility(weather.visibility, UNITS)
-                             if weather.visibility is not None else 'N/A')),
+                             str(visibility(weather.visibility, UNITS, lang))
+                             if weather.visibility is not None else 'N/A'),
             '--icon':        lambda: icons(weather.icon),
             '-i':            lambda: icons(weather.icon),
+            '--icon-emoji':  lambda: icons(weather.icon, is_emoji=True),
+            '-I':            lambda: icons(weather.icon, is_emoji=True),
             '--name':        lambda: weather.city_name,
             '-n':            lambda: weather.city_name,
             '--id':          lambda: (
@@ -673,16 +771,45 @@ def main() -> None:
             '-r':            lambda: weather.sunrise_str,
             '--sunset':      lambda: weather.sunset_str,
             '-s':            lambda: weather.sunset_str,
-            '--last-update': lambda: datetime.fromtimestamp(
-                             build_cache_path(
-                                 args.lat, args.lon, lang
-                             ).stat().st_mtime
-                             ).strftime('%Y-%m-%d %H:%M:%S')
+            '--last-update': lambda: (
+                             _fmt_last_update(
+                                 build_cache_path(args.lat, args.lon, lang),
+                                 UNITS
+                             )
                              if build_cache_path(
                                  args.lat, args.lon, lang
                              ).exists()
-                             else msg(lang, 'cache_no_data'),
+                             else msg(lang, 'cache_no_data')),
+            '--wind-speed':  lambda: str(convert(
+                             weather.wind_speed, 'wind_speed', UNITS)),
+            '--wind-deg':    lambda: str(weather.wind_deg)
+                             if weather.wind_deg is not None else 'N/A',
         }
+
+        # Variantes sin formato para --raw
+        if args.raw:
+            output_map.update({
+                '--temp':        lambda: str(convert(
+                                     weather.temperature, 'temp', UNITS)),
+                '-t':            lambda: str(convert(
+                                     weather.temperature, 'temp', UNITS)),
+                '--feels-like':  lambda: str(convert(
+                                     weather.feels_like, 'feels-like', UNITS)),
+                '-l':            lambda: str(convert(
+                                     weather.feels_like, 'feels-like', UNITS)),
+                '--humidity':    lambda: str(weather.humidity),
+                '-u':            lambda: str(weather.humidity),
+                '--pressure':    lambda: str(convert(
+                                     weather.pressure, 'pressure', UNITS)),
+                '-p':            lambda: str(convert(
+                                     weather.pressure, 'pressure', UNITS)),
+                '--visibility':  lambda: str(convert(
+                                     weather.visibility, 'visibility', UNITS))
+                                 if weather.visibility is not None else 'N/A',
+                '-b':            lambda: str(convert(
+                                     weather.visibility, 'visibility', UNITS))
+                                 if weather.visibility is not None else 'N/A',
+            })
 
         # Aliases para evitar duplicados
         aliases = {
@@ -706,6 +833,8 @@ def main() -> None:
             '--visibility':  '-b',
             '-i':            '--icon',
             '--icon':        '-i',
+            '-I':            '--icon-emoji',
+            '--icon-emoji':  '-I',
             '-n':            '--name',
             '--name':        '-n',
             '-r':            '--sunrise',
@@ -729,11 +858,15 @@ def main() -> None:
             '--desc-cap':    {'-d', '--description'},
             '-d':            {'-D', '--desc-cap'},
             '--description': {'-D', '--desc-cap'},
+            '-i':            {'-I', '--icon-emoji'},
+            '--icon':        {'-I', '--icon-emoji'},
+            '-I':            {'-i', '--icon'},
+            '--icon-emoji':  {'-i', '--icon'},
         }
 
         for arg in argv[1:]:
             if not arg.startswith('-'):
-                outputs.append(arg)
+                outputs.append(('literal', arg))
                 continue
 
             # Expandir flags combinados tipo -tuw → -t -u -w
@@ -748,58 +881,68 @@ def main() -> None:
                     seen.add(key)
                     seen.add(aliases.get(key, key))
                     seen.update(exclusions.get(key, set()))
-                    outputs.append(output_map[key]())
+                    outputs.append(('value', output_map[key]()))
 
         if outputs:
+            # Resolver text-prev y text-next
+            if args.text_prev or args.text_next:
+                merged = []
+                for j, item in enumerate(outputs):
+                    kind, val = item
+                    if kind == 'literal':
+                        # text-prev: literal se pega al value siguiente
+                        if args.text_prev and j + 1 < len(outputs):
+                            nxt_kind, nxt_val = outputs[j + 1]
+                            if nxt_kind == 'value':
+                                outputs[j + 1] = ('value', f'{val}{nxt_val}')
+                                continue
+                        # text-next: literal se pega al value anterior
+                        if args.text_next and j > 0:
+                            prev_kind, prev_val = merged[-1]
+                            if prev_kind == 'value':
+                                merged[-1] = ('value', f'{prev_val}{val}')
+                                continue
+                    merged.append(item)
+                outputs = merged
+
+            # Extraer solo los valores
+            flat = [val for _, val in outputs]
+
             # Aplicar --icon-prev / --icon-next si hay ícono
             icon_keys = {'--icon', '-i'}
-            icon_in_outputs = any(
-                k in seen for k in icon_keys
-            )
+            icon_in_outputs = any(k in seen for k in icon_keys)
             if icon_in_outputs and (args.icon_prev or args.icon_next):
-                # Encontrar posición del ícono en outputs
-                # El ícono es el valor del weather.icon ya evaluado
                 icon_val = icons(weather.icon)
                 try:
-                    icon_idx = outputs.index(icon_val)
+                    icon_idx = flat.index(icon_val)
                 except ValueError:
                     icon_idx = None
 
                 if icon_idx is not None:
-                    outputs.pop(icon_idx)
-                    # Ajustar índice si icon_prev e icon_next
-                    # ambos activos: pegar entre anterior y siguiente
+                    flat.pop(icon_idx)
                     if args.icon_prev and args.icon_next:
-                        # pegar al anterior y al siguiente
-                        if icon_idx > 0 and icon_idx <= len(outputs):
-                            prev = outputs[icon_idx - 1]
-                            nxt = (outputs[icon_idx]
-                                   if icon_idx < len(outputs) else None)
-                            outputs[icon_idx - 1] = f'{prev} {icon_val}'
+                        if icon_idx > 0 and icon_idx <= len(flat):
+                            prev = flat[icon_idx - 1]
+                            nxt = (flat[icon_idx]
+                                   if icon_idx < len(flat) else None)
                             if nxt is not None:
-                                outputs[icon_idx] = f'{icon_val} {nxt}'
-                                outputs.pop(icon_idx - 1)
-                                outputs[icon_idx - 1] = (
-                                    f'{prev} {icon_val} {nxt}'
-                                )
+                                flat.pop(icon_idx - 1)
+                                flat.insert(icon_idx - 1,
+                                            f'{prev} {icon_val} {nxt}')
                     elif args.icon_prev:
-                        # pegar al siguiente
-                        if icon_idx < len(outputs):
-                            outputs[icon_idx] = (
-                                f'{icon_val} {outputs[icon_idx]}'
-                            )
+                        if icon_idx < len(flat):
+                            flat[icon_idx] = f'{icon_val} {flat[icon_idx]}'
                         else:
-                            outputs.append(icon_val)
+                            flat.append(icon_val)
                     elif args.icon_next:
-                        # pegar al anterior
                         if icon_idx > 0:
-                            outputs[icon_idx - 1] = (
-                                f'{outputs[icon_idx - 1]} {icon_val}'
+                            flat[icon_idx - 1] = (
+                                f'{flat[icon_idx - 1]} {icon_val}'
                             )
                         else:
-                            outputs.insert(0, icon_val)
+                            flat.insert(0, icon_val)
 
-            print(args.space.join(outputs))
+            print(args.space.join(flat))
         else:
             default_report(weather, lang, UNITS)
 

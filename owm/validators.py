@@ -1,5 +1,14 @@
 from owm.i18n import msg
 
+# Flags que no requieren descarga de la API
+_CACHE_ONLY_FLAGS = {'name', 'last_update'}
+
+# Flags que requieren la API
+_API_FLAGS = {
+    'description', 'feels_like', 'humidity', 'icon', 'pressure',
+    'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+}
+
 
 class Validator:
     def __init__(self, lang: str):
@@ -20,8 +29,32 @@ class Validator:
     # Validation
     # =========================
 
+    def _needs_api_key(self, args) -> bool:
+        '''Devuelve True si la operación requiere API key.'''
+        # Estos modos no necesitan API
+        if getattr(args, 'order', None):
+            return False
+        if getattr(args, 'remove_city', None):
+            return False
+        if getattr(args, 'offline', False):
+            return False
+
+        # Si solo hay flags de caché (name, last_update), no necesita API
+        active = {
+            f for f in _API_FLAGS
+            if getattr(args, f, False)
+        }
+        cache_only = {
+            f for f in _CACHE_ONLY_FLAGS
+            if getattr(args, f, False)
+        }
+        if cache_only and not active:
+            return False
+
+        return True
+
     def _validate_api_key(self, args):
-        if not args.key:
+        if self._needs_api_key(args) and not args.key:
             raise ValueError(msg(self.lang, 'api_key_required'))
 
     def _validate_location(self, args):
@@ -69,12 +102,12 @@ class Validator:
     # =========================
 
     def _normalize_location(self, args):
-        """
+        '''
         Converts geo or lat/lon strings into normalized float lat/lon.
         After this call:
             args.lat and args.lon are floats
             args.geo is None
-        """
+        '''
         if args.geo:
             lat, lon = self._parse_geo(args.geo)
             args.lat = lat

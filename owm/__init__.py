@@ -25,7 +25,8 @@ try:
     __version__ = version('owm')
 except PackageNotFoundError:
     try:
-        __version__ = (Path(__file__).parent / 'VERSION').read_text().strip()
+        _v = Path(__file__).parent / 'VERSION'
+        __version__ = _v.read_text().strip().split('-')[0]
     except FileNotFoundError:
         FILE = Path(__file__).resolve().parent.parent / 'VERSION'
         if FILE.exists():

@@ -24,14 +24,11 @@ msgstr "Opción inválida, ingresá un número entre 1 y {max}"
 msgid "add_city_saved"
 msgstr "Guardado {name} como '{alias}'"
 
-
 msgid "alias_invalid"
 msgstr "El alias solo puede contener letras minúsculas, números y guiones bajos"
 
 msgid "api_key_required"
 msgstr "Se requiere API key: use --key o configure OWM_API_KEY"
-
-
 
 msgid "cache_cleared"
 msgstr "Caché eliminado"
@@ -84,6 +81,9 @@ msgstr "--geo debe tener formato LAT,LON (ej: -34.61,-58.38)"
 msgid "group_auth"
 msgstr "autenticación"
 
+msgid "group_cities"
+msgstr "gestión de localidades"
+
 msgid "group_config"
 msgstr "configuración"
 
@@ -123,6 +123,9 @@ msgstr "Humedad relativa"
 msgid "help_icon"
 msgstr "Código de ícono del clima"
 
+msgid "help_icon_emoji"
+msgstr "Ícono del clima como emoji a color (para fuente Noto Color Emoji)"
+
 msgid "help_icon_next"
 msgstr "Pega el ícono al campo de salida anterior (sin separador)"
 
@@ -156,11 +159,17 @@ msgstr "Longitud (usar junto con --lat, o variable OWM_GEO)"
 msgid "help_name"
 msgstr "Nombre de la ciudad (solo modo clima)"
 
+msgid "help_offline"
+msgstr "Usar datos del caché sin conectarse a la API"
+
 msgid "help_order"
 msgstr "Reordenar ciudades guardadas (aliases separados por coma)"
 
 msgid "help_pressure"
 msgstr "Presión atmosférica"
+
+msgid "help_raw"
+msgstr "Imprimir valores crudos sin unidades ni formato"
 
 msgid "help_remove_city"
 msgstr "Eliminar una ciudad guardada por alias"
@@ -180,6 +189,12 @@ msgstr "Temperatura"
 msgid "help_terminal"
 msgstr "Fuerza el comportamiento de la terminal indicada"
 
+msgid "help_text_next"
+msgstr "Pega el literal siguiente al campo de salida anterior"
+
+msgid "help_text_prev"
+msgstr "Pega el literal anterior al campo de salida siguiente"
+
 msgid "help_time"
 msgstr "Segundos de validez del caché (o variable OWM_SECONDS)"
 
@@ -197,6 +212,12 @@ msgstr "Visibilidad"
 
 msgid "help_wind"
 msgstr "Velocidad y dirección del viento"
+
+msgid "help_wind_deg"
+msgstr "Dirección del viento en grados (solo --no-format)"
+
+msgid "help_wind_speed"
+msgstr "Valor crudo de velocidad del viento (solo --no-format)"
 
 msgid "invalid_format"
 msgstr "Formato inválido"
