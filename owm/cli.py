@@ -42,10 +42,11 @@ def detect_lang() -> str:
         if arg.startswith('--lang='):
             return arg.split('=', 1)[1]
     lang = (get_env('LANG') or 'en')[:2]
-    mo = _LOCALEDIR / lang / 'LC_MESSAGES' / 'owm.mo'
-    if not mo.exists():
-        return 'en'
-    return lang
+    mo_local = _LOCALEDIR / lang / 'LC_MESSAGES' / 'owm.mo'
+    mo_system = Path('/usr/share/locale') / lang / 'LC_MESSAGES' / 'owm.mo'
+    if mo_local.exists() or mo_system.exists():
+        return lang
+    return 'en'
 
 
 class AlignedHelpFormatter(HelpFormatter):
