@@ -8,7 +8,7 @@ from sys import argv, exit
 from json import dumps, loads, JSONDecodeError
 
 from owm import __version__
-from owm.i18n import msg
+from owm.i18n import msg, _LOCALEDIR
 from owm.weather import get_weather
 from owm.api import get_api_key
 from owm.cache import build_cache_path, get_cache_dir, read_cache
@@ -41,7 +41,11 @@ def detect_lang() -> str:
     for arg in argv:
         if arg.startswith('--lang='):
             return arg.split('=', 1)[1]
-    return (get_env('LANG') or 'en')[:2]
+    lang = (get_env('LANG') or 'en')[:2]
+    mo = _LOCALEDIR / lang / 'LC_MESSAGES' / 'owm.mo'
+    if not mo.exists():
+        return 'en'
+    return lang
 
 
 class AlignedHelpFormatter(HelpFormatter):
@@ -845,6 +849,7 @@ def main() -> None:
 
         seen = set()
         outputs = []
+        icon_is_emoji = False
 
         # Flags que se excluyen mutuamente
         exclusions = {
@@ -881,6 +886,8 @@ def main() -> None:
                     seen.add(key)
                     seen.add(aliases.get(key, key))
                     seen.update(exclusions.get(key, set()))
+                    if key in ('-I', '--icon-emoji'):
+                        icon_is_emoji = True
                     outputs.append(('value', output_map[key]()))
 
         if outputs:
@@ -909,10 +916,10 @@ def main() -> None:
             flat = [val for _, val in outputs]
 
             # Aplicar --icon-prev / --icon-next si hay ícono
-            icon_keys = {'--icon', '-i'}
+            icon_keys = {'--icon', '-i', '--icon-emoji', '-I'}
             icon_in_outputs = any(k in seen for k in icon_keys)
             if icon_in_outputs and (args.icon_prev or args.icon_next):
-                icon_val = icons(weather.icon)
+                icon_val = icons(weather.icon, is_emoji=icon_is_emoji)
                 try:
                     icon_idx = flat.index(icon_val)
                 except ValueError:

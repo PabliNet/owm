@@ -209,10 +209,6 @@ owm --geo=-34.61,-58.38 --key=YOUR_KEY --sunrise --sunset --space=" / "
 
 # Conky integration (prints -- when no data available)
 owm --geo=-34.61,-58.38 --key=YOUR_KEY --terminal=conky -T
-
-# Conky with Noto Color Emoji font
-owm --geo=-34.61,-58.38 --key=YOUR_KEY --offline --text-prev --text-next \
-    '${font Noto Color Emoji}' -I '${font}' -Tuw --space=' · '
 ```
 
 ### Changes in 0.5.0
@@ -424,10 +420,6 @@ owm --geo=-34.61,-58.38 --key=TU_KEY --sunrise --sunset --space=" / "
 
 # Integración con Conky (imprime -- cuando no hay datos disponibles)
 owm --geo=-34.61,-58.38 --key=TU_KEY --terminal=conky -T
-
-# Conky con fuente Noto Color Emoji
-owm --geo=-34.61,-58.38 --key=TU_KEY --offline --text-prev --text-next \
-    '${font Noto Color Emoji}' -I '${font}' -Tuw --space=' · '
 ```
 
 ### Cambios en la versión 0.5.0
