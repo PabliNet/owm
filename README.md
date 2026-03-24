@@ -104,7 +104,7 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 
 | Flag | Description |
 |------|-------------|
-| `--clear-cache` | Clear the weather cache |
+| `-c, --clear-cache` | Clear the weather cache |
 | `--lang LANG` | Language for weather description (or `LANG` env var, default: `en`) |
 | `--offline` | Use cached data without connecting to the API |
 | `--raw` | Print raw values without units or formatting |
@@ -117,6 +117,7 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--visibility` | `-b` | Visibility |
+| `--country` | | Country code (e.g. AR, US) |
 | `--description` | `-d` | Weather description (lowercase) |
 | `--desc-cap` | `-D` | Weather description (capitalized) |
 | `--icon` | `-i` | Weather icon (text symbols) |
@@ -126,14 +127,19 @@ python3 -m owm --city=Paris --key=YOUR_KEY
 | `--id` | | OWM city ID |
 | `--feels-like` | `-l` | Feels like temperature |
 | `--last-update` | | Last cache update time |
+| `--grnd-level` | | Atmospheric pressure at ground level |
 | `--name` | `-n` | City name (reads from cache, no API call needed) |
 | `--pressure` | `-p` | Atmospheric pressure |
-| `--space SPACE` | | Separator between output fields (default: space) |
+| `--sea-level` | | Atmospheric pressure at sea level |
+| `--sep SEP` | | Separator between output fields (default: space) |
 | `--sunrise` | `-r` | Sunrise time |
 | `--sunset` | `-s` | Sunset time |
 | `--temp` | `-t` | Temperature |
+| `--temp-max` | | Maximum temperature (use with `--raw`) |
+| `--temp-min` | | Minimum temperature (use with `--raw`) |
 | `--text-next` | | Attach the following literal to the previous output field |
 | `--text-prev` | | Attach the preceding literal to the next output field |
+| `--timezone` | | UTC timezone offset (e.g. UTC -3) |
 | `--toggle` | `-T` | Temperature or feels-like, alternating every 5 seconds |
 | `--humidity` | `-u` | Relative humidity |
 | `--wind` | `-w` | Wind speed and direction |
@@ -156,7 +162,7 @@ See [API.md](API.md) for documentation on using `owm` as a Python library.
 Any argument that does not start with `-` is printed as-is in the position it appears. This allows custom formatting:
 
 ```bash
-owm --geo=-34.61,-58.38 --key=YOUR_KEY -n " | " -t "°C " -u "%" --space=""
+owm --geo=-34.61,-58.38 --key=YOUR_KEY -n " | " -t "°C " -u "%" --sep=""
 # Buenos Aires | 21°C 80%
 ```
 
@@ -179,7 +185,7 @@ export OWM_GEO=-34.61,-58.38
 export OWM_UNITS=metric
 
 owm -t -d
-owm -T -u --space=" | "
+owm -T -u --sep=" | "
 python3 -m owm -w -p --units=imperial
 ```
 
@@ -187,7 +193,7 @@ python3 -m owm -w -p --units=imperial
 
 ```bash
 # Temperature and description, pipe-separated
-owm --geo=-34.61,-58.38 --key=YOUR_KEY -d " | " -t --space=""
+owm --geo=-34.61,-58.38 --key=YOUR_KEY -d " | " -t --sep=""
 # scattered clouds | 18°C
 
 # Metric vs imperial
@@ -205,11 +211,15 @@ owm --city=Tokyo --key=YOUR_KEY
 python3 -m owm --city="New York" --key=YOUR_KEY
 
 # Sunrise and sunset
-owm --geo=-34.61,-58.38 --key=YOUR_KEY --sunrise --sunset --space=" / "
+owm --geo=-34.61,-58.38 --key=YOUR_KEY --sunrise --sunset --sep=" / "
 
 # Conky integration (prints -- when no data available)
 owm --geo=-34.61,-58.38 --key=YOUR_KEY --terminal=conky -T
 ```
+
+### Changes in 1.2.1
+
+`--space` has been renamed to `--sep`.
 
 ### Changes in 0.5.0
 
@@ -315,7 +325,7 @@ python3 -m owm --city=Paris --key=TU_KEY
 
 | Flag | Descripción |
 |------|-------------|
-| `--clear-cache` | Eliminar el caché del clima |
+| `-c, --clear-cache` | Eliminar el caché del clima |
 | `--lang LANG` | Idioma de la descripción del clima (o variable `LANG`, por defecto: `en`) |
 | `--offline` | Usar datos del caché sin conectarse a la API |
 | `--raw` | Imprimir valores crudos sin unidades ni formato |
@@ -328,6 +338,7 @@ python3 -m owm --city=Paris --key=TU_KEY
 | Flag | Corto | Descripción |
 |------|-------|-------------|
 | `--visibility` | `-b` | Visibilidad |
+| `--country` | | Código de país (ej. AR, US) |
 | `--description` | `-d` | Descripción del clima en minúsculas |
 | `--desc-cap` | `-D` | Descripción del clima con primera letra en mayúscula |
 | `--icon` | `-i` | Ícono del clima (símbolos de texto) |
@@ -337,14 +348,19 @@ python3 -m owm --city=Paris --key=TU_KEY
 | `--id` | | ID de la ciudad en OWM |
 | `--feels-like` | `-l` | Sensación térmica |
 | `--last-update` | | Hora de la última actualización del caché |
+| `--grnd-level` | | Presión atmosférica a nivel del suelo |
 | `--name` | `-n` | Nombre de la ciudad (lee del caché, no requiere API) |
 | `--pressure` | `-p` | Presión atmosférica |
-| `--space SPACE` | | Separador entre campos de salida (por defecto: espacio) |
+| `--sea-level` | | Presión atmosférica a nivel del mar |
+| `--sep SEP` | | Separador entre campos de salida (por defecto: espacio) |
 | `--sunrise` | `-r` | Hora de salida del sol |
 | `--sunset` | `-s` | Hora de puesta del sol |
 | `--temp` | `-t` | Temperatura |
+| `--temp-max` | | Temperatura máxima (usar con `--raw`) |
+| `--temp-min` | | Temperatura mínima (usar con `--raw`) |
 | `--text-next` | | Pega el literal siguiente al campo de salida anterior |
 | `--text-prev` | | Pega el literal anterior al campo de salida siguiente |
+| `--timezone` | | Offset de zona horaria UTC (ej. UTC -3) |
 | `--toggle` | `-T` | Temperatura o sensación térmica, alternando cada 5 segundos |
 | `--humidity` | `-u` | Humedad relativa |
 | `--wind` | `-w` | Velocidad y dirección del viento |
@@ -367,7 +383,7 @@ Consultá [API.md](API.md) para documentación sobre el uso de `owm` como librer
 Cualquier argumento que no empiece con `-` se imprime tal cual en la posición en que aparece. Esto permite formatear la salida libremente:
 
 ```bash
-owm --geo=-34.61,-58.38 --key=TU_KEY -n " | " -t "°C " -u "%" --space=""
+owm --geo=-34.61,-58.38 --key=TU_KEY -n " | " -t "°C " -u "%" --sep=""
 # Buenos Aires | 21°C 80%
 ```
 
@@ -390,7 +406,7 @@ export OWM_GEO=-34.61,-58.38
 export OWM_UNITS=metric
 
 owm -t -d
-owm -T -u --space=" | "
+owm -T -u --sep=" | "
 python3 -m owm -w -p --units=imperial
 ```
 
@@ -398,7 +414,7 @@ python3 -m owm -w -p --units=imperial
 
 ```bash
 # Temperatura y descripción separadas por pipe
-owm --geo=-34.61,-58.38 --key=TU_KEY -d " | " -t --space=""
+owm --geo=-34.61,-58.38 --key=TU_KEY -d " | " -t --sep=""
 # nubes dispersas | 18°C
 
 # Métrico vs imperial
@@ -416,11 +432,15 @@ owm --city=Tokio --key=TU_KEY
 python3 -m owm --city="Nueva York" --key=TU_KEY
 
 # Salida y puesta del sol
-owm --geo=-34.61,-58.38 --key=TU_KEY --sunrise --sunset --space=" / "
+owm --geo=-34.61,-58.38 --key=TU_KEY --sunrise --sunset --sep=" / "
 
 # Integración con Conky (imprime -- cuando no hay datos disponibles)
 owm --geo=-34.61,-58.38 --key=TU_KEY --terminal=conky -T
 ```
+
+### Cambios en la versión 1.2.1
+
+`--space` fue renombrado a `--sep`.
 
 ### Cambios en la versión 0.5.0
 

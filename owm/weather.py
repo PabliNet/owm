@@ -32,7 +32,7 @@ def get_weather(
         "lon": lon,
         "appid": api_key,
         "units": units,
-        "lang": lang,
+        "lang": lang[:2],
     }
 
     try:

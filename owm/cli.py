@@ -38,16 +38,23 @@ def parse_geo(value: str) -> str:
 
 
 def detect_lang() -> str:
+    normalize_lang = lambda l: (
+        f'{lang_short}{l[2]}{l[3:5].upper()}'   # ej: es_AR
+        if len(l) >= 5 and (len(l) == 5 or l[5] == '.') else l[:2]
+    )
     for arg in argv:
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-    lang = (get_env('LANG') or 'en')[:2]
-    mo_local = _LOCALEDIR / lang / 'LC_MESSAGES' / 'owm.mo'
-    mo_system = Path('/usr/share/locale') / lang / 'LC_MESSAGES' / 'owm.mo'
-    if mo_local.exists() or mo_system.exists():
-        return lang
-    return 'en'
+            return normalize_lang(arg.split('=', 1)[1])
+    raw = get_env('LANG') or 'en'
+    lang_short = raw[:2].lower()  # ej: es
+    lang_full = normalize_lang(raw)
+    for lang in (lang_full, lang_short):
+        mo_local = _LOCALEDIR / lang / 'LC_MESSAGES' / 'owm.mo'
+        mo_system = Path('/usr/share/locale') / lang / 'LC_MESSAGES' / 'owm.mo'
+        if mo_local.exists() or mo_system.exists():
+            return lang
 
+    return 'en'
 
 class AlignedHelpFormatter(HelpFormatter):
     def _format_action_invocation(self, action):
@@ -92,9 +99,10 @@ def build_parser(lang: str) -> ArgumentParser:
 
     # Configuración
     config = parser.add_argument_group(m('group_config'))
-    config.add_argument('--clear-cache', action='store_true',
+    config.add_argument('-c', '--clear-cache', action='store_true',
                         dest='clear_cache', help=m('help_clear_cache'))
-    config.add_argument('--lang', default=None, help=m('help_lang'))
+    config.add_argument('--lang', default=None,
+                        help=f"{m('help_lang')} ({lang})")
     config.add_argument('--offline', action='store_true',
                         help=m('help_offline'))
     config.add_argument('--raw', action='store_true',
@@ -106,20 +114,32 @@ def build_parser(lang: str) -> ArgumentParser:
     config.add_argument('--units', choices=['metric', 'imperial'],
                         default=None, metavar='UNITS', help=m('help_units'))
 
-    # Flags de salida (modo clima) — orden alfabético
+    # Flags de formato
+    fmt = parser.add_argument_group(m('group_format'))
+    fmt.add_argument('--icon-next', action='store_true',
+                     dest='icon_next', help=m('help_icon_next'))
+    fmt.add_argument('--icon-prev', action='store_true',
+                     dest='icon_prev', help=m('help_icon_prev'))
+    fmt.add_argument('--sep', default=' ', help=m('help_sep'))
+    fmt.add_argument('--text-next', action='store_true',
+                     dest='text_next', help=m('help_text_next'))
+    fmt.add_argument('--text-prev', action='store_true',
+                     dest='text_prev', help=m('help_text_prev'))
+
+    # Flags de salida (modo clima)
     output = parser.add_argument_group(m('group_output'))
     output.add_argument('-b', '--visibility', action='store_true',
                         help=m('help_visibility'))
+    output.add_argument('--country', action='store_true',
+                        help=m('help_country'))
     output.add_argument('-d', '--description', action='store_true',
                         help=m('help_description'))
     output.add_argument('-D', '--desc-cap', action='store_true',
                         help=m('help_description_capitalize'))
+    output.add_argument('--grnd-level', action='store_true',
+                        dest='grnd_level', help=m('help_grnd_level'))
     output.add_argument('-i', '--icon', action='store_true',
                         help=m('help_icon'))
-    output.add_argument('--icon-next', action='store_true',
-                        dest='icon_next', help=m('help_icon_next'))
-    output.add_argument('--icon-prev', action='store_true',
-                        dest='icon_prev', help=m('help_icon_prev'))
     output.add_argument('-I', '--icon-emoji', action='store_true',
                         dest='icon_emoji', help=m('help_icon_emoji'))
     output.add_argument('--id', action='store_true', help=m('help_id'))
@@ -131,19 +151,22 @@ def build_parser(lang: str) -> ArgumentParser:
                         help=m('help_name'))
     output.add_argument('-p', '--pressure', action='store_true',
                         help=m('help_pressure'))
-    output.add_argument('--space', default=' ', help=m('help_space'))
+    output.add_argument('--sea-level', action='store_true',
+                        dest='sea_level', help=m('help_sea_level'))
     output.add_argument('-r', '--sunrise', action='store_true',
                         help=m('help_sunrise'))
     output.add_argument('-s', '--sunset', action='store_true',
                         help=m('help_sunset'))
     output.add_argument('-t', '--temp', action='store_true',
                         help=m('help_temp'))
-    output.add_argument('--text-next', action='store_true',
-                        dest='text_next', help=m('help_text_next'))
-    output.add_argument('--text-prev', action='store_true',
-                        dest='text_prev', help=m('help_text_prev'))
     output.add_argument('-T', '--toggle', action='store_true',
                         dest='toggle', help=m('help_toggle'))
+    output.add_argument('--temp-max', action='store_true',
+                        dest='temp_max', help=m('help_temp_max'))
+    output.add_argument('--temp-min', action='store_true',
+                        dest='temp_min', help=m('help_temp_min'))
+    output.add_argument('--timezone', action='store_true',
+                        help=m('help_timezone'))
     output.add_argument('-u', '--humidity', action='store_true',
                         help=m('help_humidity'))
     output.add_argument('-w', '--wind', action='store_true',
@@ -236,7 +259,7 @@ def add_city_cmd(city_name: str, alias: str | None,
     '''Busca una ciudad y la guarda en ~/.owm/cities.json.'''
     try:
         print(msg(lang, 'dl-city'))
-        cities = city_name_to_list(city_name, api_key=api_key, lang=lang)
+        cities = city_name_to_list(city_name, api_key=api_key, lang=lang[:2])
     except KeyboardInterrupt:
         print()
         return
@@ -532,28 +555,49 @@ def default_report(weather, lang: str, units: str) -> None:
         'label_name', 'label_description', 'label_temp',
         'label_humidity', 'label_pressure', 'label_visibility',
         'label_wind', 'label_sunrise', 'label_sunset',
+        'label_sea_level', 'label_grnd_level',
     ]
     width = max(len(m(k)) for k in keys)
-    _u = lambda label: (
-        f'\x1b[1;4m{label}\x1b[24m:\x1b[0m' + ' ' * (width - len(label))
-    )
+    def _u(label):
+        words = label.split(' ')
+        underlined = ' '.join(
+            f'\x1b[1;4m{w}\x1b[24m' if i == 0
+            else f'\x1b[4m{w}\x1b[24m'
+            for i, w in enumerate(words)
+        )
+        return underlined + ':\x1b[0m' + ' ' * (width - len(label))
     fl_short = msg(lang, 'feels_like_short')
     vis = (
-        str(visibility(weather.visibility, units))
+        str(visibility(weather.visibility, units, lang))
         if weather.visibility is not None else 'N/A'
     )
-    temp = temperature(weather.temperature, units)
-    feels = temperature(weather.feels_like, units)
+    temp = temperature(weather.temperature, units, lang)
+    feels = temperature(weather.feels_like, units, lang)
     desc = f"{icons(weather.icon)} {weather.description.capitalize()}"
+    city_line = weather.city_name
+    if weather.country:
+        city_line = f'{weather.city_name}, {weather.country}'
     list_print = [
-        f"{_u(m('label_name'))} {weather.city_name}",
+        f"{_u(m('label_name'))} {city_line}",
         f"{_u(m('label_description'))} {desc}",
         f"{_u(m('label_temp'))} {temp} ({fl_short} {feels})",
         f"{_u(m('label_humidity'))} {weather.humidity}%",
-        f"{_u(m('label_pressure'))} {pressure(weather.pressure, units)}",
+        f"{_u(m('label_pressure'))} {pressure(weather.pressure, units, lang)}",
+    ]
+    if weather.sea_level is not None:
+        list_print.append(
+            f"{_u(m('label_sea_level'))} "
+            f"{pressure(weather.sea_level, units, lang)}"
+        )
+    if weather.grnd_level is not None:
+        list_print.append(
+            f"{_u(m('label_grnd_level'))} "
+            f"{pressure(weather.grnd_level, units, lang)}"
+        )
+    list_print += [
         f"{_u(m('label_visibility'))} {vis}",
         f"{_u(m('label_wind'))} "
-        f"{wind(weather.wind_speed, units)} {weather.wind_direction(lang)}",
+        f"{wind(weather.wind_speed, units, lang)} {weather.wind_direction(lang)}",
         f"{_u(m('label_sunrise'))} {weather.sunrise_str}",
         f"{_u(m('label_sunset'))} {weather.sunset_str}",
     ]
@@ -645,7 +689,8 @@ def main() -> None:
         # ── Modo geolocalización ────────────────────────────────────────────
         if args.city:
             print(msg(lang, 'dl-city'))
-            cities = city_name_to_list(args.city, api_key=api_key, lang=lang)
+            cities = city_name_to_list(
+                args.city, api_key=api_key, lang=lang[:2])
             blocks = []
             for city in cities:
                 weather = get_weather(
@@ -730,7 +775,7 @@ def main() -> None:
             if second_unit >= 5 and temp != fl:
                 return f'⇄{temperature(weather.feels_like, UNITS)}'
             else:
-                return f'T{temperature(weather.temperature, UNITS)}'
+                return f' {temperature(weather.temperature, UNITS)}'
 
         output_map = {
             '--temp':        lambda: temperature(
@@ -785,10 +830,12 @@ def main() -> None:
                                  args.lat, args.lon, lang
                              ).exists()
                              else msg(lang, 'cache_no_data')),
-            '--wind-speed':  lambda: str(convert(
-                             weather.wind_speed, 'wind_speed', UNITS)),
-            '--wind-deg':    lambda: str(weather.wind_deg)
-                             if weather.wind_deg is not None else 'N/A',
+            '--country':     lambda: weather.country or 'N/A',
+            '--timezone':    lambda: weather.timezone_str,
+            '--sea-level':   lambda: pressure(weather.sea_level, UNITS, lang)
+                             if weather.sea_level is not None else 'N/A',
+            '--grnd-level':  lambda: pressure(weather.grnd_level, UNITS, lang)
+                             if weather.grnd_level is not None else 'N/A',
         }
 
         # Variantes sin formato para --raw
@@ -814,11 +861,26 @@ def main() -> None:
                 '-b':            lambda: str(convert(
                                      weather.visibility, 'visibility', UNITS))
                                  if weather.visibility is not None else 'N/A',
+                '--wind-speed':  lambda: str(convert(
+                                     weather.wind_speed, 'wind_speed', UNITS)),
+                '--wind-deg':    lambda: str(weather.wind_deg)
+                                 if weather.wind_deg is not None else 'N/A',
+                '--temp-min':    lambda: str(convert(
+                                     weather.temp_min, 'temp', UNITS))
+                                 if weather.temp_min is not None else 'N/A',
+                '--temp-max':    lambda: str(convert(
+                                     weather.temp_max, 'temp', UNITS))
+                                 if weather.temp_max is not None else 'N/A',
+                '--sea-level':   lambda: str(convert(
+                                     weather.sea_level, 'pressure', UNITS))
+                                 if weather.sea_level is not None else 'N/A',
+                '--grnd-level':  lambda: str(convert(
+                                     weather.grnd_level, 'pressure', UNITS))
+                                 if weather.grnd_level is not None else 'N/A',
             })
 
         # Aliases para evitar duplicados
         aliases = {
-            '-t':            '--temp',
             '--temp':        '-t',
             '-T':            '--toggle',
             '--toggle':      '-T',
@@ -928,29 +990,33 @@ def main() -> None:
 
                 if icon_idx is not None:
                     flat.pop(icon_idx)
-                    if args.icon_prev and args.icon_next:
-                        if icon_idx > 0 and icon_idx <= len(flat):
-                            prev = flat[icon_idx - 1]
-                            nxt = (flat[icon_idx]
-                                   if icon_idx < len(flat) else None)
-                            if nxt is not None:
-                                flat.pop(icon_idx - 1)
-                                flat.insert(icon_idx - 1,
-                                            f'{prev} {icon_val} {nxt}')
-                    elif args.icon_prev:
-                        if icon_idx < len(flat):
-                            flat[icon_idx] = f'{icon_val} {flat[icon_idx]}'
-                        else:
-                            flat.append(icon_val)
-                    elif args.icon_next:
-                        if icon_idx > 0:
-                            flat[icon_idx - 1] = (
-                                f'{flat[icon_idx - 1]} {icon_val}'
-                            )
-                        else:
-                            flat.insert(0, icon_val)
 
-            print(args.space.join(flat))
+                    if args.icon_prev:
+                        # Pegar ícono + todo lo que le sigue hasta el
+                        # próximo valor (inclusive)
+                        right = []
+                        while icon_idx < len(flat):
+                            right.append(flat.pop(icon_idx))
+                            # Si llegamos a un valor que no es literal, parar
+                            if outputs[icon_idx][0] == 'value':
+                                break
+                        flat.insert(icon_idx,
+                                    f'{icon_val} {"".join(right)}')
+
+                    elif args.icon_next:
+                        # Pegar todo lo anterior hasta el valor previo
+                        # (inclusive) + ícono
+                        left = []
+                        idx = icon_idx - 1
+                        while idx >= 0:
+                            left.insert(0, flat.pop(idx))
+                            if outputs[idx][0] == 'value':
+                                break
+                            idx -= 1
+                        flat.insert(idx if idx >= 0 else 0,
+                                    f'{"".join(left)} {icon_val}')
+
+            print(args.sep.join(flat))
         else:
             default_report(weather, lang, UNITS)
 

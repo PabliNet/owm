@@ -32,6 +32,10 @@ class Weather:
     wind_speed: float
     visibility: Optional[int] = None
     city_id: Optional[int] = None
+    grnd_level: Optional[int] = None
+    sea_level: Optional[int] = None
+    temp_max: Optional[float] = None
+    temp_min: Optional[float] = None
 
     @classmethod
     def from_api(cls, data: dict, lang: str = 'en') -> "Weather":
@@ -68,6 +72,10 @@ class Weather:
             wind_speed=wind_data.get("speed", 0.0),
             visibility=data.get("visibility"),
             city_id=data.get("id"),
+            grnd_level=main_data.get("grnd_level"),
+            sea_level=main_data.get("sea_level"),
+            temp_max=main_data.get("temp_max"),
+            temp_min=main_data.get("temp_min"),
         )
 
     @property
@@ -96,3 +104,17 @@ class Weather:
         directions = msg(lang, 'wind_directions').split()
         index = round(self.wind_deg / 45) % 8
         return directions[index]
+
+    @property
+    def timezone_str(self) -> str:
+        '''Offset UTC formateado, ej: UTC -3, UTC +5:30, UTC 0.'''
+        total_minutes = self.tz_offset // 60
+        sign = '+' if total_minutes >= 0 else '-'
+        total_minutes = abs(total_minutes)
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+        if sign == '+' and hours == 0 and minutes == 0:
+            return 'UTC 0'
+        if minutes == 0:
+            return f'UTC {sign}{hours}'
+        return f'UTC {sign}{hours}:{minutes:02d}'

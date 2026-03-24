@@ -13,7 +13,7 @@ def city_name_to_list(city: str, api_key: str, lang: str = "en") -> list[City]:
         "q": city,
         "limit": 5,
         "appid": api_key,
-        "lang": lang,
+        "lang": lang[:2],
     }
 
     url = f"{BASE_URL}?{urlencode(params)}"

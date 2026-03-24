@@ -87,6 +87,9 @@ msgstr "city management"
 msgid "group_config"
 msgstr "setting"
 
+msgid "group_format"
+msgstr "format"
+
 msgid "group_local"
 msgstr "geolocation"
 
@@ -105,6 +108,9 @@ msgstr "Search city by name (geocoding mode)"
 msgid "help_clear_cache"
 msgstr "Clear the weather cache"
 
+msgid "help_country"
+msgstr "Country code (e.g. AU, IR)"
+
 msgid "help_description"
 msgstr "Weather description (lowercase)"
 
@@ -116,6 +122,9 @@ msgstr "Feels like temperature"
 
 msgid "help_geo"
 msgstr "Coordinates as LAT,LON or city alias (or OWM_GEO env var)"
+
+msgid "help_grnd_level"
+msgstr "Atmospheric pressure at ground level"
 
 msgid "help_humidity"
 msgstr "Relative humidity"
@@ -174,7 +183,10 @@ msgstr "Print raw values without units or formatting"
 msgid "help_remove_city"
 msgstr "Remove a saved city by alias"
 
-msgid "help_space"
+msgid "help_sea_level"
+msgstr "Atmospheric pressure at sea level"
+
+msgid "help_sep"
 msgstr "Separator between output fields"
 
 msgid "help_sunrise"
@@ -185,6 +197,12 @@ msgstr "Sunset time"
 
 msgid "help_temp"
 msgstr "Temperature"
+
+msgid "help_temp_max"
+msgstr "Maximum temperature (raw only)"
+
+msgid "help_temp_min"
+msgstr "Minimum temperature (raw only)"
 
 msgid "help_terminal"
 msgstr "Force behavior as if running in the specified terminal"
@@ -197,6 +215,9 @@ msgstr "Attach the preceding literal to the next output field"
 
 msgid "help_time"
 msgstr "Cache validity in seconds (or OWM_SECONDS env var)"
+
+msgid "help_timezone"
+msgstr "UTC timezone offset (e.g. UTC -3)"
 
 msgid "help_toggle"
 msgstr "Temperature or feels-like alternating every 5 seconds"
@@ -231,14 +252,20 @@ msgstr "Invalid longitude format"
 msgid "label_description"
 msgstr "Description"
 
+msgid "label_grnd_level"
+msgstr "Ground level"
+
 msgid "label_humidity"
 msgstr "Humidity"
 
 msgid "label_name"
-msgstr "Location"
+msgstr "City"
 
 msgid "label_pressure"
 msgstr "Pressure"
+
+msgid "label_sea_level"
+msgstr "Sea level"
 
 msgid "label_sunrise"
 msgstr "Sunrise"
