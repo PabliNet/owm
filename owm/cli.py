@@ -771,8 +771,13 @@ def main() -> None:
 
         def toggle_output():
             second_unit = int(time()) % 10
-            temp, fl = round(weather.temperature), round(weather.feels_like)
-            if second_unit >= 5 and temp != fl:
+            itemp, ifl, rtemp, rfl = (
+                int(convert(weather.temperature, 'temp', UNITS)),
+                int(convert(weather.feels_like, 'feels-like', UNITS)),
+                round(convert(weather.temperature, 'temp', UNITS)),
+                round(convert(weather.feels_like, 'feels-like', UNITS))
+            )
+            if second_unit >= 5 and itemp != ifl and rtemp != rfl:
                 return f'⇄{temperature(weather.feels_like, UNITS)}'
             else:
                 return f' {temperature(weather.temperature, UNITS)}'

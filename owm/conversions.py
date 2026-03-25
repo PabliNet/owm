@@ -16,7 +16,7 @@ def n(value, digits=1, unit='°C', lang='en'):
 
 def convert(value, key, unit='metric'):
     '''Convierte un valor numérico sin formato.'''
-    if key in ('temp', 'feels-like'):
+    if key in ('temp', 'feels_like', 'feels-like'):
         if unit == 'metric':
             return value
         return value * 9 / 5 + 32
