@@ -26,6 +26,14 @@ def build_cache_path(lat, lon, lang) -> Path:
     return get_cache_dir() / build_filename(lat, lon, lang)
 
 
+def build_alias_filename(alias: str, lang: str) -> str:
+    return f'{alias}_{lang}.json'
+
+
+def build_alias_cache_path(alias: str, lang: str) -> Path:
+    return get_cache_dir() / build_alias_filename(alias, lang)
+
+
 def is_cache_valid(path: Path, max_age: int) -> bool:
     if not path.exists():
         return False

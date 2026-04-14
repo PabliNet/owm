@@ -258,6 +258,9 @@ msgstr "Ground level"
 msgid "label_humidity"
 msgstr "Humidity"
 
+msgid "label_last_update"
+msgstr "Last update"
+
 msgid "label_name"
 msgstr "City"
 

@@ -11,7 +11,9 @@ from owm import __version__
 from owm.i18n import msg, _LOCALEDIR
 from owm.weather import get_weather
 from owm.api import get_api_key
-from owm.cache import build_cache_path, get_cache_dir, read_cache
+from owm.cache import (
+    build_alias_cache_path, build_cache_path, get_cache_dir, read_cache
+)
 from owm.geocode import city_name_to_list
 from owm.exceptions import OWMError
 from owm.env import get_env
@@ -195,6 +197,7 @@ def _is_latlon(value: str) -> bool:
 def resolve_geo_alias(args, lang: str) -> None:
     '''Si --geo no es LAT,LON, busca el alias en ~/.owm/cities.json.'''
     if args.geo is None or _is_latlon(args.geo):
+        args._resolved_alias = None
         return
     alias = args.geo
     cities_file = Path.home() / '.owm' / 'cities.json'
@@ -225,6 +228,7 @@ def resolve_geo_alias(args, lang: str) -> None:
         raise OWMError(
             msg(lang, 'geo_alias_bad_entry').format(alias=alias)
         )
+    args._resolved_alias = alias
 
 
 def _ansi_len(s: str) -> int:
@@ -494,15 +498,20 @@ def fetch_weather(
     cache_seconds: int,
     terminal: str | None,
     online: bool = True,
+    alias: str | None = None,
 ) -> 'Weather':
     '''Obtiene el clima online o directo del caché según online.'''
     if online:
         return get_weather(
             lat=lat, lon=lon, api_key=api_key, lang=lang,
-            units=units, cache_seconds=cache_seconds, terminal=terminal,
+            units=units, cache_seconds=cache_seconds,
+            terminal=terminal, alias=alias,
         )
     # Modo offline: leer directo del JSON
-    cache_path = build_cache_path(lat, lon, lang)
+    if alias:
+        cache_path = build_alias_cache_path(alias, lang)
+    else:
+        cache_path = build_cache_path(lat, lon, lang)
     if not cache_path.exists():
         raise OWMError(msg(lang, 'cache_no_data'))
     data = loads(cache_path.read_text())
@@ -548,14 +557,15 @@ def apply_env_defaults(args) -> None:
         args.terminal = get_env('WINDOW_TERMINAL')
 
 
-def default_report(weather, lang: str, units: str) -> None:
+def default_report(weather, lang: str, units: str,
+                   cache_path=None) -> None:
     '''Reporte completo cuando no se pasan flags de salida.'''
     m = lambda key: msg(lang, key)
     keys = [
         'label_name', 'label_description', 'label_temp',
         'label_humidity', 'label_pressure', 'label_visibility',
         'label_wind', 'label_sunrise', 'label_sunset',
-        'label_sea_level', 'label_grnd_level',
+        'label_sea_level', 'label_grnd_level', 'label_last_update',
     ]
     width = max(len(m(k)) for k in keys)
     def _u(label):
@@ -601,6 +611,11 @@ def default_report(weather, lang: str, units: str) -> None:
         f"{_u(m('label_sunrise'))} {weather.sunrise_str}",
         f"{_u(m('label_sunset'))} {weather.sunset_str}",
     ]
+    if cache_path is not None and cache_path.exists():
+        list_print.append(
+            f"{_u(m('label_last_update'))} "
+            f"{_fmt_last_update(cache_path, units)}"
+        )
     print('\n'.join(list_print))
 
 
@@ -640,8 +655,9 @@ def main() -> None:
             return
 
         _api_flags = {
-            'description', 'feels_like', 'humidity', 'icon', 'pressure',
-            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+            'description', 'desc_cap', 'feels_like', 'humidity',
+            'icon', 'icon_emoji', 'pressure', 'temp', 'toggle',
+            'visibility', 'wind', 'sunrise', 'sunset', 'id',
         }
         _needs_api = (
             args.add_city
@@ -676,8 +692,9 @@ def main() -> None:
 
     try:
         _api_flags2 = {
-            'description', 'feels_like', 'humidity', 'icon', 'pressure',
-            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+            'description', 'desc_cap', 'feels_like', 'humidity',
+            'icon', 'icon_emoji', 'pressure', 'temp', 'toggle',
+            'visibility', 'wind', 'sunrise', 'sunset', 'id',
         }
         _needs_api2 = (
             args.city
@@ -742,13 +759,15 @@ def main() -> None:
 
         # Flags que solo leen del caché — no necesitan descargar
         api_flags = {
-            'description', 'feels_like', 'humidity', 'icon', 'pressure',
-            'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+            'description', 'desc_cap', 'feels_like', 'humidity',
+            'icon', 'icon_emoji', 'pressure', 'temp', 'toggle',
+            'visibility', 'wind', 'sunrise', 'sunset', 'id',
         }
         needs_download = any(getattr(args, f, False) for f in api_flags)
         online = not args.offline
 
         if needs_download or (not args.name and not args.last_update):
+            _alias = getattr(args, '_resolved_alias', None)
             weather = fetch_weather(
                 lat=args.lat,
                 lon=args.lon,
@@ -758,10 +777,15 @@ def main() -> None:
                 cache_seconds=args.cache_seconds,
                 terminal=args.terminal,
                 online=online,
+                alias=_alias,
             )
         else:
             # Solo -n y/o --last-update: leer del caché
-            cache_path = build_cache_path(args.lat, args.lon, lang)
+            _alias = getattr(args, '_resolved_alias', None)
+            cache_path = (
+                build_alias_cache_path(_alias, lang) if _alias
+                else build_cache_path(args.lat, args.lon, lang)
+            )
             if not cache_path.exists():
                 raise OWMError(msg(lang, 'cache_no_data'))
             cached = read_cache(cache_path)
@@ -777,11 +801,20 @@ def main() -> None:
                 round(convert(weather.temperature, 'temp', UNITS)),
                 round(convert(weather.feels_like, 'feels-like', UNITS))
             )
-            if second_unit >= 5 and itemp != ifl and rtemp != rfl:
-                return f'⇄{temperature(weather.feels_like, UNITS)}'
+            t = f'T{temperature(weather.temperature, UNITS)}'
+            l = f'⇄{temperature(weather.feels_like, UNITS)}'
+            if itemp != ifl and rtemp != rfl:
+                if second_unit < 5:
+                    return t
+                else:
+                    return l
             else:
-                return f' {temperature(weather.temperature, UNITS)}'
-
+                return t[1:]
+        _lu_alias = getattr(args, '_resolved_alias', None)
+        _lu_cache_path = (
+            build_alias_cache_path(_lu_alias, lang) if _lu_alias
+            else build_cache_path(args.lat, args.lon, lang)
+        )
         output_map = {
             '--temp':        lambda: temperature(
                              weather.temperature, UNITS, lang),
@@ -827,13 +860,8 @@ def main() -> None:
             '--sunset':      lambda: weather.sunset_str,
             '-s':            lambda: weather.sunset_str,
             '--last-update': lambda: (
-                             _fmt_last_update(
-                                 build_cache_path(args.lat, args.lon, lang),
-                                 UNITS
-                             )
-                             if build_cache_path(
-                                 args.lat, args.lon, lang
-                             ).exists()
+                             _fmt_last_update(_lu_cache_path, UNITS)
+                             if _lu_cache_path.exists()
                              else msg(lang, 'cache_no_data')),
             '--country':     lambda: weather.country or 'N/A',
             '--timezone':    lambda: weather.timezone_str,
@@ -1023,7 +1051,12 @@ def main() -> None:
 
             print(args.sep.join(flat))
         else:
-            default_report(weather, lang, UNITS)
+            _alias = getattr(args, '_resolved_alias', None)
+            _cache_path = (
+                build_alias_cache_path(_alias, lang) if _alias
+                else build_cache_path(args.lat, args.lon, lang)
+            )
+            default_report(weather, lang, UNITS, cache_path=_cache_path)
 
     except OWMError as exc:
         print(exc)

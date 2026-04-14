@@ -1,0 +1,174 @@
+#!/bin/sh
+
+. /etc/bash_default
+
+# USER sin fork: LOGNAME/USER ya están en el entorno
+_USER="${LOGNAME:-${USER}}"
+
+FILE="/tmp/.${_USER}_owm.txt"
+FAIL="/tmp/.${_USER}_owm_fail"
+
+KEY="$OWM_API_KEY"
+GEO_DEFAULT="$OWM_GEO"
+
+# -------------------------
+# argumentos
+
+if [ "$#" -eq 1 ]; then
+    GEO="$GEO_DEFAULT"
+    FLAG_SH="$1"
+elif [ "$#" -eq 2 ]; then
+    FILE="/tmp/.${_USER}_$1_owm.txt"
+    FAIL="/tmp/.${_USER}_$1_owm_fail"
+    GEO="$1"
+    FLAG_SH="$2"
+else
+    exit 1
+fi
+
+# -------------------------
+# mapping de flags
+
+case "$FLAG_SH" in
+    --icon|-i) field=1 ;;
+    --name|-n) field=2 ;;
+    --country) field=3 ;;
+    --desc-cap|-D) field=4 ;;
+    --description|-d) MODE=desc_lower ;;
+    --temp|-t) field=5 ;;
+    --feels-like|-l) field=6 ;;
+    --humidity|-u) field=7 ;;
+    --pressure|-p) field=8 ;;
+    --grnd-level) field=9 ;;
+    --sea-level) field=10 ;;
+    --visibility|-b) field=11 ;;
+    --wind|-w) field=12 ;;
+    --sunrise|-r) field=13 ;;
+    --sunset|-s) field=14 ;;
+    --last-update) field=15 ;;
+    --timezone) field=16 ;;
+    --toggle|-T) MODE=toggle ;;
+    --info) MODE=info ;;
+    --mini) MODE=mini ;;
+    --panel) MODE=panel ;;
+    *) exit 1 ;;
+esac
+
+# -------------------------
+# decidir actualización sin forks
+
+need_update=0
+
+if [ ! -s "$FILE" ]; then
+    need_update=1
+else
+    # edad del caché: stat es el único fork, pero solo corre si el archivo existe
+    # y solo cuando realmente importa saber si pasaron 5 min
+    MTIME=$(stat -c %Y "$FILE")
+    NOW=$(date +%s)
+    AGE=$((NOW - MTIME))
+    [ "$AGE" -gt 300 ] && need_update=1
+fi
+
+# anti-loop si falló hace poco
+if [ "$need_update" -eq 1 ] && [ -f "$FAIL" ]; then
+    LAST_FAIL=$(stat -c %Y "$FAIL")
+    [ -z "$NOW" ] && NOW=$(date +%s)
+    DELTA_FAIL=$((NOW - LAST_FAIL))
+    [ "$DELTA_FAIL" -lt 60 ] && need_update=0
+fi
+
+# -------------------------
+# actualización
+
+if [ "$need_update" -eq 1 ]; then
+
+    TMP="${FILE}.tmp"
+    rm -f "$FILE"
+
+    if owm --key="$KEY" --geo="$GEO" --text-prev --sep='|' --text-prev -In \
+        --country -Dtlup --grnd-level --sea-level -bwrs \
+        --last-update --timezone > "$TMP" 2>/dev/null && [ -s "$TMP" ]; then
+
+        mv "$TMP" "$FILE"
+        rm -f "$FAIL"
+
+    else
+        rm -f "$TMP"
+        touch "$FAIL"
+    fi
+fi
+
+# -------------------------
+# desc_lower sin cut ni tr
+
+if [ "$MODE" = desc_lower ]; then
+    IFS='|' read -r _f1 _f2 _f3 f4 _rest < "$FILE"
+    printf '%s\n' "$f4" | tr '[:upper:]' '[:lower:]'
+    exit
+fi
+
+# -------------------------
+# salida directa sin cut: IFS read + eval
+
+if [ -n "$field" ]; then
+    IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 < "$FILE"
+    eval "printf '%s\n' \"\$f${field}\""
+    exit
+fi
+
+# -------------------------
+# redondeo pure shell sin printf "%.0f"
+
+_round() {
+    v=${1%°*}
+    case "$v" in
+        *,*)
+            _int=${v%,*}
+            _dec=${v#*,}
+            ;;
+        *)
+            _int=$v
+            _dec=0
+            ;;
+    esac
+    _d1=${_dec%"${_dec#?}"}
+    if [ "$_d1" -ge 5 ] 2>/dev/null; then
+        printf "%d" $((_int + 1))
+    else
+        printf "%d" "$_int"
+    fi
+}
+
+# -------------------------
+case "$MODE" in
+    toggle|info|mini|panel)
+    read -r SEC _ < /proc/uptime
+    SEC=${SEC%.*}
+    second_unit=$((SEC % 10))
+
+    IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 < "$FILE"
+
+    itemp=${f5%.*}
+    ifl=${f6%.*}
+
+    rtemp=$(_round "$f5")
+    rfl=$(_round "$f6")
+
+    if [ "$itemp" != "$ifl" ] && [ "$rtemp" != "$rfl" ]; then
+        if [ "$second_unit" -ge 5 ]; then
+            print_temp=⇄"$f6"
+        else
+            print_temp=T"$f5"
+        fi
+    else
+        print_temp="$f5"
+    fi
+
+    case "$MODE" in
+        toggle) printf '%s\n' "$print_temp" ;;
+        info) printf "%s · %s · %s\n" "$print_temp" "$f7" "$f12" ;;
+        mini) printf '%s %s\n' "$f1" "$print_temp" ;;
+        panel) printf "%s %s · %s · %s · %s · %s\n" "$f1" "$print_temp" "$f7" "$f8" "$f11" "$f12" ;;
+    esac
+;; esac

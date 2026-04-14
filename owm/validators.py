@@ -5,8 +5,9 @@ _CACHE_ONLY_FLAGS = {'name', 'last_update'}
 
 # Flags que requieren la API
 _API_FLAGS = {
-    'description', 'feels_like', 'humidity', 'icon', 'pressure',
-    'temp', 'toggle', 'visibility', 'wind', 'sunrise', 'sunset', 'id',
+    'description', 'desc_cap', 'feels_like', 'humidity',
+    'icon', 'icon_emoji', 'pressure', 'temp', 'toggle',
+    'visibility', 'wind', 'sunrise', 'sunset', 'id',
 }
 
 

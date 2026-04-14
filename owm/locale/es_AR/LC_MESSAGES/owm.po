@@ -261,6 +261,9 @@ msgstr "Nivel del piso"
 msgid "label_humidity"
 msgstr "Humedad"
 
+msgid "label_last_update"
+msgstr "Última update"
+
 msgid "label_name"
 msgstr "Localidad"
 

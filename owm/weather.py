@@ -3,7 +3,10 @@ from requests import get, RequestException
 from owm.i18n import msg
 from owm.models import Weather
 from owm.exceptions import OWMError
-from owm.cache import build_cache_path, is_cache_valid, read_cache, write_cache
+from owm.cache import (
+    build_alias_cache_path, build_cache_path,
+    is_cache_valid, read_cache, write_cache
+)
 
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
@@ -16,8 +19,12 @@ def get_weather(
     units: str = "metric",
     cache_seconds: int = 600,
     terminal: str | None = None,
+    alias: str | None = None,
 ) -> Weather:
-    cache_path = build_cache_path(lat, lon, lang)
+    if alias:
+        cache_path = build_alias_cache_path(alias, lang)
+    else:
+        cache_path = build_cache_path(lat, lon, lang)
 
     if is_cache_valid(cache_path, cache_seconds):
         cached = read_cache(cache_path)
