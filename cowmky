@@ -118,6 +118,17 @@ if [ -n "$field" ]; then
 fi
 
 # -------------------------
+# Truncar entero "%.0f"
+_int() {
+    v=${1%°*}
+    case "$v" in
+        *,*) _integer=${v%,*} ;;
+        *) _integer="$v"
+    esac
+    printf "%d" "$_integer"
+}
+
+# -------------------------
 # redondeo pure shell sin printf "%.0f"
 
 _round() {
@@ -149,8 +160,8 @@ case "$MODE" in
 
     IFS='|' read -r f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 < "$FILE"
 
-    itemp=${f5%.*}
-    ifl=${f6%.*}
+    itemp=$(_int "$f5")
+    ifl=$(_int "$f6")
 
     rtemp=$(_round "$f5")
     rfl=$(_round "$f6")
